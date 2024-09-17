@@ -4,7 +4,7 @@ using UnityEngine;
 
 [CreateAssetMenu(menuName = "Tile State")]
 
-public class TileStateHandler : ScriptableObject
+public class TileState : ScriptableObject
 {
     public Color _backgroundColor;
     public Color _textColor;

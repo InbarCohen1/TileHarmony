@@ -9,6 +9,6 @@ public class TileCell : MonoBehaviour
 
     public bool _isEmpty => _tile == null;
 
-    public bool _isOccupied => _tile == null; // TODO: REMOVE??
+    public bool _isOccupied => _tile != null; // TODO: REMOVE??
 
 }

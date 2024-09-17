@@ -28,6 +28,28 @@ public class TileGrid : MonoBehaviour
                 row._cells[x]._cellCoordinates = new Vector2Int(x, y);
             }
         }
+    }
 
+    public TileCell GetRandomEmptyCell() // TODO: refactore : index = (index + 1) % size;
+    {
+        int index = Random.Range(0, _cells.Length); // TODO:  _cells.Length --> _size 
+        int startingIndex = index;
+
+        while (_cells[index]._isOccupied)
+        {
+            index++;
+
+            if (index >= _cells.Length)
+            {
+                index = 0;
+            }
+
+            if(index == startingIndex)
+            {
+                return null;
+            }
+        }
+
+        return _cells[index];
     }
 }
