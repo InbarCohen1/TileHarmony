@@ -71,9 +71,9 @@ public class Tile : MonoBehaviour
 
         transform.position = to;
 
-        if (merging)
-        {
-            Destroy(gameObject);
-        }
+        //if (merging)
+        //{
+        //    Destroy(gameObject);
+        //}
     }
 }

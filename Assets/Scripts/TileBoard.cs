@@ -1,15 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class TileBoard : MonoBehaviour
 {
     public Tile _tilePrefab; // TODO:  [Header("Bullets")] [SerializeField] private GameObject _bulletPrefab;
-    
+
     public TileState[] tileStates;
 
     private TileGrid _grid;
     private List<Tile> _tiles;
+    private bool _isWaiting;   // waiting for updated states before animaiting
 
     private void Awake()
     {
@@ -34,6 +36,8 @@ public class TileBoard : MonoBehaviour
 
     private void Update()
     {
+        if (_isWaiting) return;
+
         if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
         {
             Move(Vector2Int.up, 0, 1, 1, 1);
@@ -50,11 +54,12 @@ public class TileBoard : MonoBehaviour
         {
             Move(Vector2Int.right, _grid._width - 2, -1, 0, 1);
         }
+
     }
 
-    private void Move(Vector2Int direction, int startX, int incrementX, int startY, int incrementY)
+    private void Move(Vector2Int direction, int startX, int incrementX, int startY, int incrementY) //TODO: Renaming ischangedBoard
     {
-        bool changed = false;
+        bool ischangedBoard = false;
 
         for (int x = startX; x >= 0 && x < _grid._width; x += incrementX)
         {
@@ -64,15 +69,15 @@ public class TileBoard : MonoBehaviour
 
                 if (cell._isOccupied)
                 {
-                    changed |= MoveTile(cell._tile, direction);
+                    ischangedBoard |= MoveTile(cell._tile, direction);
                 }
             }
         }
 
-        //if (changed)
-        //{
-        //    StartCoroutine(WaitForChanges());
-        //}
+        if (ischangedBoard)
+        {
+            StartCoroutine(WaitForChanges());
+        }
     }
 
     private bool MoveTile(Tile tile, Vector2Int direction)
@@ -104,5 +109,29 @@ public class TileBoard : MonoBehaviour
         }
 
         return false;
+    }
+
+    private IEnumerator WaitForChanges()
+    {
+        _isWaiting = true;
+
+        yield return new WaitForSeconds(0.1f); // same duration as animation
+
+        _isWaiting = false;
+
+        //foreach (var tile in _tiles)
+        //{
+        //    tile.locked = false;
+        //}
+
+        //if (_tiles.Count != _grid.Size)
+        //{
+        //    CreateTile();
+        //}
+
+        //if (CheckForGameOver())
+        //{
+        //    GameManager.Instance.GameOver();
+        //}
     }
 }
