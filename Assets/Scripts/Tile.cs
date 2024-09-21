@@ -31,7 +31,6 @@ public class Tile : MonoBehaviour
 
     public void Spawn(TileCell cell)
     {
-        
         if(_cell is not null)
         {
             _cell._tile = null;
@@ -41,5 +40,19 @@ public class Tile : MonoBehaviour
         _cell._tile = this;
 
         transform.position = _cell.transform.position;
+    }
+
+    public void MoveTo(TileCell cell)
+    {
+        if (_cell is not null)
+        {
+            _cell._tile = null;
+        }
+
+        _cell = cell;
+        _cell._tile = this;
+
+        transform.position = _cell.transform.position;
+        // StartCoroutine(Animate(cell.transform.position, false));
     }
 }
