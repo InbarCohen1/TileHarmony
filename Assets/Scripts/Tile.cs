@@ -52,7 +52,28 @@ public class Tile : MonoBehaviour
         _cell = cell;
         _cell._tile = this;
 
-        transform.position = _cell.transform.position;
-        // StartCoroutine(Animate(cell.transform.position, false));
+        StartCoroutine(Animate(cell.transform.position, false));
+    }
+
+    private IEnumerator Animate(Vector3 to, bool merging) //TODO: renaming
+    {
+        float elapsed = 0f;
+        float duration = 0.1f;
+
+        Vector3 from = transform.position;
+
+        while (elapsed < duration)
+        {
+            transform.position = Vector3.Lerp(from, to, elapsed / duration);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.position = to;
+
+        if (merging)
+        {
+            Destroy(gameObject);
+        }
     }
 }
