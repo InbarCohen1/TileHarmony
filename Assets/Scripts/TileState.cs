@@ -6,6 +6,7 @@ using UnityEngine;
 
 public class TileState : ScriptableObject
 {
+    public int number;  //TODO: rename - value
     public Color _backgroundColor;
     public Color _textColor;
 }

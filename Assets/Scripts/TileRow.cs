@@ -8,7 +8,6 @@ public class TileRow : MonoBehaviour
 
     private void Awake()
     {
-        
         _cells =  GetComponentsInChildren<TileCell>();
     }
 }

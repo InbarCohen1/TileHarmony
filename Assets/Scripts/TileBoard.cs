@@ -89,11 +89,11 @@ public class TileBoard : MonoBehaviour
         {
             if (adjacentCell._isOccupied)
             {
-                //if (CanMerge(tile, adjacentCell._tile))
-                //{
-                //    MergeTiles(tile, adjacentCell._tile);
-                //    return true;
-                //}
+                if (CanMerge(tile, adjacentCell._tile))
+                {
+                    MergeTiles(tile, adjacentCell._tile);
+                    return true;
+                }
 
                 break;
             }
@@ -111,6 +111,36 @@ public class TileBoard : MonoBehaviour
         return false;
     }
 
+    private bool CanMerge(Tile a, Tile b)
+    {
+        return a._state == b._state && !b.locked;
+    }
+
+    private void MergeTiles(Tile a, Tile b)
+    {
+        _tiles.Remove(a);
+        a.Merge(b._cell); // a is beening merged to b
+
+        int index = Mathf.Clamp(IndexOf(b._state) + 1, 0, tileStates.Length - 1);  
+        TileState newState = tileStates[index];
+
+        //b.SetState(newState);
+        //GameManager.Instance.IncreaseScore(newState.number);
+    }
+
+    private int IndexOf(TileState state) //  TODO : refactore
+    {
+        for (int i = 0; i < tileStates.Length; i++)
+        {
+            if (state == tileStates[i])
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
     private IEnumerator WaitForChanges()
     {
         _isWaiting = true;
@@ -119,15 +149,15 @@ public class TileBoard : MonoBehaviour
 
         _isWaiting = false;
 
-        //foreach (var tile in _tiles)
-        //{
-        //    tile.locked = false;
-        //}
+        foreach (var tile in _tiles)
+        {
+            tile.locked = false;
+        }
 
-        //if (_tiles.Count != _grid.Size)
-        //{
-        //    CreateTile();
-        //}
+        if (_tiles.Count != _grid._size)
+        {
+            CreateTile();
+        }
 
         //if (CheckForGameOver())
         //{

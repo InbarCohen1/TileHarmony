@@ -8,8 +8,9 @@ public class Tile : MonoBehaviour
 {
     public TileState _state { get; private set; }
     public TileCell _cell { get; private set; }
-    public int _number { get; private set; } // TODO:rename ->value
+    public bool locked { get; set; }  // insures no multiple mergings
 
+    public int _number { get; private set; } // TODO:rename ->value
     private Image _background;
     private TextMeshProUGUI _text; // TODO: just use Text instad of TextMeshPro
 
@@ -55,6 +56,21 @@ public class Tile : MonoBehaviour
         StartCoroutine(Animate(cell.transform.position, false));
     }
 
+    //cell param is the one we merge to
+    public void Merge(TileCell cell)
+    {
+        if (_cell != null)
+        {
+            _cell._tile = null;
+        }
+
+        _cell = null;
+        cell._tile.locked = true; // disable merging to this tile in the current movement
+
+        StartCoroutine(Animate(cell.transform.position, true));
+    }
+
+
     private IEnumerator Animate(Vector3 to, bool merging) //TODO: renaming
     {
         float elapsed = 0f;
@@ -71,9 +87,9 @@ public class Tile : MonoBehaviour
 
         transform.position = to;
 
-        //if (merging)
-        //{
-        //    Destroy(gameObject);
-        //}
+        if (merging)
+        {
+            Destroy(gameObject);
+        }
     }
 }

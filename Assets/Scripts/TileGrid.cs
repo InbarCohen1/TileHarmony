@@ -7,10 +7,10 @@ public class TileGrid : MonoBehaviour
     public TileRow[] _rows {  get; private set; }
     public TileCell[] _cells { get; private set; }
 
-    public int _size => _cells.Length;
-    public int _height => _rows.Length;
-    public int _width => _size / _height;
-    
+    public int _size => _cells.Length; //TODO: public?
+    public int _height => _rows.Length; //TODO: public?
+    public int _width => _size / _height; //TODO: public?
+
 
     private void Awake()
     {
