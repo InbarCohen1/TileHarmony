@@ -1,15 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.SocialPlatforms.Impl;
 
 public class GameManager : MonoBehaviour
 {
     [Header("TileBoard")]
-    [SerializeField] private TileBoard board;
+    [SerializeField] private TileBoard _gameBoard;
 
+    [SerializeField] private CanvasGroup _gameOver;
+    [SerializeField] private TextMeshProUGUI _scoreText;
+    [SerializeField] private TextMeshProUGUI _bestScoreText;
 
-    [SerializeField] private CanvasGroup gameOver;
-
+    public int _score { get; private set; } = 0;
 
     private void Start()
     {
@@ -19,26 +23,26 @@ public class GameManager : MonoBehaviour
     public void NewGame()
     {
         // reset score
-        //SetScore(0);
-        //hiscoreText.text = LoadHiscore().ToString();
+        SetScore(0);
+        _bestScoreText.text = LoadBestScore().ToString();
 
         // hide game over screen
-        gameOver.alpha = 0f;
-        gameOver.interactable = false;
+        _gameOver.alpha = 0f;
+        _gameOver.interactable = false;
 
-        // update board state
-        board.ClearBoard();
-        board.CreateTile();
-        board.CreateTile();
-        board.enabled = true;
+        // update _gameBoard state
+        _gameBoard.ClearBoard();
+        _gameBoard.CreateTile();
+        _gameBoard.CreateTile();
+        _gameBoard.enabled = true;
     }
 
     public void GameOver()
     {
-        board.enabled = false;
-        gameOver.interactable = true;
+        _gameBoard.enabled = false;
+        _gameOver.interactable = true;
 
-        StartCoroutine(Fade(gameOver, 1f, 1f));
+        StartCoroutine(Fade(_gameOver, 1f, 1f));
     }
 
     private IEnumerator Fade(CanvasGroup canvasGroup, float to, float delay = 0f) // TODO: renaming
@@ -58,6 +62,34 @@ public class GameManager : MonoBehaviour
         }
 
         canvasGroup.alpha = to;
+    }
+
+    public void IncreaseScore(int points)
+    {
+        SetScore(_score + points);
+    }
+
+    private void SetScore(int score)
+    {
+        _score = score;
+        _scoreText.text = score.ToString();
+
+        SaveHiscore();
+    }
+
+    private void SaveHiscore()
+    {
+        int hiscore = LoadBestScore();
+
+        if (_score > hiscore)
+        {
+            PlayerPrefs.SetInt("bestScore", _score);
+        }
+    }
+
+    private int LoadBestScore()
+    {
+        return PlayerPrefs.GetInt("bestScore", 0);
     }
 
 
