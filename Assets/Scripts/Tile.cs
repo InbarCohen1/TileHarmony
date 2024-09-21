@@ -14,6 +14,10 @@ public class Tile : MonoBehaviour
     private Image _background;
     private TextMeshProUGUI _text; // TODO: just use Text instad of TextMeshPro
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource _audioSource;
+    [SerializeField] private AudioClip _moveClip;
+    [SerializeField] private AudioClip _mergeClip;
 
     private void Awake()
     {
@@ -54,6 +58,7 @@ public class Tile : MonoBehaviour
         _cell._tile = this;
 
         StartCoroutine(Animate(cell.transform.position, false));
+        _audioSource.PlayOneShot(_moveClip);
     }
 
     //cell param is the one we merge to
@@ -68,6 +73,7 @@ public class Tile : MonoBehaviour
         cell._tile.locked = true; // disable merging to this tile in the current movement
 
         StartCoroutine(Animate(cell.transform.position, true));
+        _audioSource.PlayOneShot(_mergeClip);
     }
 
 

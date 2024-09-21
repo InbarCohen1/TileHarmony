@@ -6,6 +6,7 @@ using UnityEngine.SocialPlatforms.Impl;
 
 public class GameManager : MonoBehaviour
 {
+
     [Header("TileBoard")]
     [SerializeField] private TileBoard _gameBoard;
 
@@ -74,10 +75,10 @@ public class GameManager : MonoBehaviour
         _score = score;
         _scoreText.text = score.ToString();
 
-        SaveHiscore();
+        SaveHighscore();
     }
 
-    private void SaveHiscore()
+    private void SaveHighscore()
     {
         int hiscore = LoadBestScore();
 
@@ -92,5 +93,13 @@ public class GameManager : MonoBehaviour
         return PlayerPrefs.GetInt("bestScore", 0);
     }
 
+    public void QuitGame()
+    {
+        Application.Quit();
+
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
+    }
 
 }
