@@ -4,15 +4,38 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    [Header("TileBoard")]
+    [SerializeField] private TileBoard board;
+
+
+    private void Start()
     {
-        
+       NewGame();
     }
 
-    // Update is called once per frame
-    void Update()
+    public void NewGame()
     {
-        
+        // reset score
+        //SetScore(0);
+        //hiscoreText.text = LoadHiscore().ToString();
+
+        // hide game over screen
+        // gameOver.alpha = 0f;
+        // gameOver.interactable = false;
+
+        // update board state
+        board.ClearBoard();
+        board.CreateTile();
+        board.CreateTile();
+        board.enabled = true;
     }
+
+    public void GameOver()
+    {
+        board.enabled = false;
+        //gameOver.interactable = true;
+
+        //StartCoroutine(Fade(gameOver, 1f, 1f));
+    }
+
 }

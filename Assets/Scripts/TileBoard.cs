@@ -6,6 +6,7 @@ using UnityEngine;
 public class TileBoard : MonoBehaviour
 {
     public Tile _tilePrefab; // TODO:  [Header("Bullets")] [SerializeField] private GameObject _bulletPrefab;
+    public GameManager gameManager;
 
     public TileState[] tileStates;
 
@@ -19,14 +20,24 @@ public class TileBoard : MonoBehaviour
         _tiles = new List<Tile>(16);
     }
 
-    private void Start()
+
+    public void ClearBoard()
     {
-        CreateTile();
-        CreateTile();
+        foreach (var cell in _grid._cells)
+        {
+            cell._tile = null;
+        }
+
+        foreach (var tile in _tiles)
+        {
+            Destroy(tile.gameObject);
+        }
+
+        _tiles.Clear();
     }
 
 
-    private void CreateTile()
+    public void CreateTile()
     {
         Tile tile = Instantiate(_tilePrefab, _grid.transform);
         tile.SetState(tileStates[0], 2);
@@ -121,9 +132,10 @@ public class TileBoard : MonoBehaviour
         _tiles.Remove(a);
         a.Merge(b._cell); // a is beening merged to b
 
-        int index = Mathf.Clamp(IndexOf(b._state) + 1, 0, tileStates.Length - 1);  
-        TileState newState = tileStates[index];
-
+        int index = Mathf.Clamp(IndexOf(b._state) + 1, 0, tileStates.Length - 1);
+        //TileState newState = tileStates[index];
+        int number = b._number * 2; //TODO: REMOVE
+        b.SetState(tileStates[index], number);
         //b.SetState(newState);
         //GameManager.Instance.IncreaseScore(newState.number);
     }
@@ -159,9 +171,48 @@ public class TileBoard : MonoBehaviour
             CreateTile();
         }
 
-        //if (CheckForGameOver())
-        //{
-        //    GameManager.Instance.GameOver();
-        //}
+        if (IsGameOver())
+        {
+            gameManager.GameOver();
+           // GameManager.Instance.GameOver();
+        }
+    }
+
+    public bool IsGameOver() //TODO: refactore
+    {
+        if (_tiles.Count != _grid._size)
+        {
+            return false;
+        }
+        //TODO: helpper func - check if any mergeas are available
+        foreach (var tile in _tiles)
+        {
+            TileCell up = _grid.GetAdjacentCell(tile._cell, Vector2Int.up);
+            TileCell down = _grid.GetAdjacentCell(tile._cell, Vector2Int.down);
+            TileCell left = _grid.GetAdjacentCell(tile._cell, Vector2Int.left);
+            TileCell right = _grid.GetAdjacentCell(tile._cell, Vector2Int.right);
+
+            if (up != null && CanMerge(tile, up._tile))
+            {
+                return false;
+            }
+
+            if (down != null && CanMerge(tile, down._tile))
+            {
+                return false;
+            }
+
+            if (left != null && CanMerge(tile, left._tile))
+            {
+                return false;
+            }
+
+            if (right != null && CanMerge(tile, right._tile))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
