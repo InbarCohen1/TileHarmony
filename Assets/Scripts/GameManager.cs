@@ -18,8 +18,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Scores")]
     [SerializeField] private TextMeshProUGUI _scoreText;
-    [SerializeField] private TextMeshProUGUI _bestScoreText;
-
+    [SerializeField] private TextMeshProUGUI _hiScoreText;
 
 
     private void Awake()
@@ -50,7 +49,7 @@ public class GameManager : MonoBehaviour
     public void NewGame()
     {
         SetScore(0);
-        _bestScoreText.text = LoadHiScore().ToString();
+        _hiScoreText.text = LoadHiScore().ToString();
 
         // hide game over screen
         _gameOver.alpha = 0f;
