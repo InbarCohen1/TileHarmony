@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SocialPlatforms.Impl;
+using UnityEngine.UI;
 
 [DefaultExecutionOrder(-1)]
 public class GameManager : MonoBehaviour
 {
+    private const string HiScore = "HiScore";
     public static GameManager Instance { get; private set; }
     public int Score { get; private set; } = 0;
     [SerializeField] private CanvasGroup _gameOver;
@@ -17,6 +19,7 @@ public class GameManager : MonoBehaviour
     [Header("Scores")]
     [SerializeField] private TextMeshProUGUI _scoreText;
     [SerializeField] private TextMeshProUGUI _bestScoreText;
+
 
 
     private void Awake()
@@ -41,13 +44,13 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-       NewGame();
+        NewGame();
     }
 
     public void NewGame()
     {
         SetScore(0);
-        _bestScoreText.text = LoadBestScore().ToString();
+        _bestScoreText.text = LoadHiScore().ToString();
 
         // hide game over screen
         _gameOver.alpha = 0f;
@@ -59,8 +62,8 @@ public class GameManager : MonoBehaviour
         _gameBoard.enabled = true;
     }
 
- 
-    private IEnumerator Fade(CanvasGroup canvasGroup, float to, float delay = 0f) 
+
+    private IEnumerator Fade(CanvasGroup canvasGroup, float to, float delay = 0f)
     {
         yield return new WaitForSeconds(delay);
 
@@ -88,22 +91,22 @@ public class GameManager : MonoBehaviour
         Score = newScore;
         _scoreText.text = newScore.ToString();
 
-        SaveHighscore();
+        SaveHiscore();
     }
 
-    private void SaveHighscore()
+    private void SaveHiscore()
     {
-        int bestScore = LoadBestScore();
+        int bestScore = LoadHiScore();
 
         if (Score > bestScore)
         {
-            PlayerPrefs.SetInt("bestScore", Score);
+            PlayerPrefs.SetInt(HiScore, Score);
         }
     }
 
-    private int LoadBestScore()
+    private int LoadHiScore()
     {
-        return PlayerPrefs.GetInt("bestScore", 0);
+        return PlayerPrefs.GetInt(HiScore, 0);
     }
 
     public void GameOver()
@@ -123,4 +126,6 @@ public class GameManager : MonoBehaviour
 #endif
     }
 
+
 }
+
