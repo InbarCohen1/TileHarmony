@@ -6,9 +6,9 @@ using UnityEngine;
 public class TileGrid : MonoBehaviour
 {
     private TileRow[] _rows;
-    public TileCell[] _cells { get; private set; }
+    public TileCell[] Cells { get; private set; }
 
-    public int Size => _cells.Length; 
+    public int Size => Cells.Length; 
     public int Height => _rows.Length; 
     public int Width => Size / Height; 
 
@@ -16,11 +16,11 @@ public class TileGrid : MonoBehaviour
     private void Awake()
     {
         _rows = GetComponentsInChildren<TileRow>();
-        _cells = GetComponentsInChildren<TileCell>();
+        Cells = GetComponentsInChildren<TileCell>();
 
-        for (int i = 0; i < _cells.Length; i++)
+        for (int i = 0; i < Cells.Length; i++)
         {
-            _cells[i]._cellCoordinates = new Vector2Int(i % Width, i / Width);
+            Cells[i]._cellCoordinates = new Vector2Int(i % Width, i / Width);
         }
     }
 
@@ -33,7 +33,7 @@ public class TileGrid : MonoBehaviour
     {
         if (x >= 0 && x < Width && y >= 0 && y < Height)
         {
-            return _rows[y]._cells[x];
+            return _rows[y].Cells[x];
         }
         else
         {
@@ -55,11 +55,11 @@ public class TileGrid : MonoBehaviour
     {
         int index = Random.Range(0, Size);
 
-        while (_cells[index]._isOccupied)
+        while (Cells[index].IsOccupied)
         {
             index = (index + 1) % Size;
         }
 
-        return _cells[index];
+        return Cells[index];
     }
 }

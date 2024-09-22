@@ -23,7 +23,7 @@ public class TileBoard : MonoBehaviour
 
     public void ClearBoard()
     {
-        foreach (var cell in _grid._cells)
+        foreach (var cell in _grid.Cells)
         {
             cell._tile = null;
         }
@@ -78,7 +78,7 @@ public class TileBoard : MonoBehaviour
             {
                 TileCell cell = _grid.GetCell(x, y);
 
-                if (cell._isOccupied)
+                if (cell.IsOccupied)
                 {
                     ischangedBoard |= MoveTile(cell._tile, direction);
                 }
@@ -98,7 +98,7 @@ public class TileBoard : MonoBehaviour
 
         while (adjacentCell != null)
         {
-            if (adjacentCell._isOccupied)
+            if (adjacentCell.IsOccupied)
             {
                 if (CanMerge(tile, adjacentCell._tile))
                 {
