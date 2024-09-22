@@ -4,18 +4,40 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SocialPlatforms.Impl;
 
+[DefaultExecutionOrder(-1)]
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
+    public int Score { get; private set; } = 0;
+    [SerializeField] private CanvasGroup _gameOver;
 
     [Header("TileBoard")]
     [SerializeField] private TileBoard _gameBoard;
 
-    [SerializeField] private CanvasGroup _gameOver;
+    [Header("Scores")]
     [SerializeField] private TextMeshProUGUI _scoreText;
     [SerializeField] private TextMeshProUGUI _bestScoreText;
 
-    public int Score { get; private set; } = 0;
+
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            DestroyImmediate(gameObject);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
+    }
 
     private void Start()
     {
@@ -39,16 +61,8 @@ public class GameManager : MonoBehaviour
         _gameBoard.enabled = true;
     }
 
-    public void GameOver()
-    {
-        _gameBoard.enabled = false;
-        _gameOver.interactable = true;
-
-        StartCoroutine(Fade(_gameOver, 1f, 1f));
-    }
-
-    private IEnumerator Fade(CanvasGroup canvasGroup, float to, float delay = 0f) // TODO: renaming
-        
+ 
+    private IEnumerator Fade(CanvasGroup canvasGroup, float to, float delay = 0f) 
     {
         yield return new WaitForSeconds(delay);
 
@@ -71,19 +85,19 @@ public class GameManager : MonoBehaviour
         SetScore(Score + points);
     }
 
-    private void SetScore(int score)
+    private void SetScore(int newScore)
     {
-        Score = score;
-        _scoreText.text = score.ToString();
+        Score = newScore;
+        _scoreText.text = newScore.ToString();
 
         SaveHighscore();
     }
 
     private void SaveHighscore()
     {
-        int hiscore = LoadBestScore();
+        int bestScore = LoadBestScore();
 
-        if (Score > hiscore)
+        if (Score > bestScore)
         {
             PlayerPrefs.SetInt("bestScore", Score);
         }
@@ -92,6 +106,14 @@ public class GameManager : MonoBehaviour
     private int LoadBestScore()
     {
         return PlayerPrefs.GetInt("bestScore", 0);
+    }
+
+    public void GameOver()
+    {
+        _gameBoard.enabled = false;
+        _gameOver.interactable = true;
+
+        StartCoroutine(Fade(_gameOver, 1f, 1f));
     }
 
     public void QuitGame()

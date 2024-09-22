@@ -34,7 +34,7 @@ public class Tile : MonoBehaviour
 
     public void Spawn(TileCell cell)
     {
-        if(Cell != null)
+        if (Cell != null)
         {
             Cell.Tile = null;
         }
@@ -59,8 +59,7 @@ public class Tile : MonoBehaviour
         _audioSource.PlayOneShot(_moveClip);
     }
 
-    //cell param is the one we merge to
-    public void Merge(TileCell cell)
+    public void Merge(TileCell mergoTo)
     {
         if (Cell != null)
         {
@@ -68,14 +67,14 @@ public class Tile : MonoBehaviour
         }
 
         Cell = null;
-        cell.Tile.IsLocked = true; // disable merging to this tile in the current movement
+        mergoTo.Tile.IsLocked = true; // disable merging to this tile in the current movement
 
-        StartCoroutine(Animate(cell.transform.position, true));
+        StartCoroutine(Animate(mergoTo.transform.position, true));
         _audioSource.PlayOneShot(_mergeClip);
     }
 
 
-    private IEnumerator Animate(Vector3 to, bool merging) //TODO: renaming
+    private IEnumerator Animate(Vector3 destPosition, bool isMerging) 
     {
         float elapsed = 0f;
         float duration = 0.1f;
@@ -84,14 +83,14 @@ public class Tile : MonoBehaviour
 
         while (elapsed < duration)
         {
-            transform.position = Vector3.Lerp(from, to, elapsed / duration);
+            transform.position = Vector3.Lerp(from, destPosition, elapsed / duration);
             elapsed += Time.deltaTime;
             yield return null;
         }
 
-        transform.position = to;
+        transform.position = destPosition;
 
-        if (merging)
+        if (isMerging)
         {
             Destroy(gameObject);
         }

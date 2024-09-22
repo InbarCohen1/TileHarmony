@@ -136,9 +136,8 @@ public class TileBoard : MonoBehaviour
         //int number = mergeTo._number * 2; //TODO: REMOVE
         // mergeTo.SetState(tileStates[index], number);
 
-        mergeFrom.SetState(newState);
+        mergeTo.SetState(newState);
         GameManager.Instance.IncreaseScore(newState.number);
-        //gameManager.IncreaseScore(number);
     }
 
     private int IndexOf(TileState state)
@@ -198,6 +197,7 @@ public class TileBoard : MonoBehaviour
         }
 
         return !IsAnyMergesAvailable();
+
         ////TODO: helpper func - check if any mergeas are available
         //foreach (var tile in _tiles)
         //{
@@ -240,9 +240,9 @@ public class TileBoard : MonoBehaviour
         }
         return false;
     }
+
     private bool IsMergesAvailable(Tile tile)
     {
-        // Get adjacent cells
         TileCell[] adjacentCells = new TileCell[]
         {
         _grid.GetAdjacentCell(tile.Cell, Vector2Int.up),
@@ -251,7 +251,6 @@ public class TileBoard : MonoBehaviour
         _grid.GetAdjacentCell(tile.Cell, Vector2Int.right)
         };
 
-        // Check if tile can merge with any adjacent tile
         foreach (TileCell adjacentCell in adjacentCells)
         {
             if (adjacentCell != null && CanMerge(tile, adjacentCell.Tile))

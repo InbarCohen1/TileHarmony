@@ -1638,8 +1638,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _tilePrefab: {fileID: 2164188907102656, guid: b0d756fa837b4e64ab1d6c0017bc53ca, type: 3}
-  gameManager: {fileID: 317463671}
-  tileStates:
+  _tileStates:
   - {fileID: 11400000, guid: 269c66e6302d2bd409a16bb2d74a4a03, type: 2}
   - {fileID: 11400000, guid: b46f90ea1c2a46647b38f7b1bcb6b661, type: 2}
   - {fileID: 11400000, guid: f61c9cf92c7808a47b93c170d1faa3d2, type: 2}
