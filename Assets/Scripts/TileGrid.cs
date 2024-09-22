@@ -1,32 +1,26 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using UnityEngine;
 
 public class TileGrid : MonoBehaviour
 {
-    public TileRow[] _rows {  get; private set; }
+    private TileRow[] _rows;
     public TileCell[] _cells { get; private set; }
 
-    public int _size => _cells.Length; //TODO: public?
-    public int _height => _rows.Length; //TODO: public?
-    public int _width => _size / _height; //TODO: public?
+    public int Size => _cells.Length; 
+    public int Height => _rows.Length; 
+    public int Width => Size / Height; 
 
 
     private void Awake()
     {
         _rows = GetComponentsInChildren<TileRow>();
         _cells = GetComponentsInChildren<TileCell>();
-    }
 
-    private void Start()
-    {
-        for (int y = 0; y < _rows.Length; y++)
+        for (int i = 0; i < _cells.Length; i++)
         {
-            var row = _rows[y];
-            for (int x = 0; x < row._cells.Length; x++)
-            {
-                row._cells[x]._cellCoordinates = new Vector2Int(x, y);
-            }
+            _cells[i]._cellCoordinates = new Vector2Int(i % Width, i / Width);
         }
     }
 
@@ -37,7 +31,7 @@ public class TileGrid : MonoBehaviour
 
     public TileCell GetCell(int x, int y)
     {
-        if (x >= 0 && x < _width && y >= 0 && y < _height)
+        if (x >= 0 && x < Width && y >= 0 && y < Height)
         {
             return _rows[y]._cells[x];
         }
@@ -57,24 +51,13 @@ public class TileGrid : MonoBehaviour
     }
 
 
-    public TileCell GetRandomEmptyCell() // TODO: refactore : index = (index + 1) % size;
+    public TileCell GetRandomEmptyCell() 
     {
-        int index = Random.Range(0, _cells.Length); // TODO:  _cells.Length --> _size 
-        int startingIndex = index;
+        int index = Random.Range(0, Size);
 
         while (_cells[index]._isOccupied)
         {
-            index++;
-
-            if (index >= _cells.Length)
-            {
-                index = 0;
-            }
-
-            if(index == startingIndex)
-            {
-                return null;
-            }
+            index = (index + 1) % Size;
         }
 
         return _cells[index];

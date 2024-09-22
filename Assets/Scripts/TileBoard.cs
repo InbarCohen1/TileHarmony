@@ -59,11 +59,11 @@ public class TileBoard : MonoBehaviour
         }
         else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
         {
-            Move(Vector2Int.down, 0, 1, _grid._height - 2, -1);
+            Move(Vector2Int.down, 0, 1, _grid.Height - 2, -1);
         }
         else if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
         {
-            Move(Vector2Int.right, _grid._width - 2, -1, 0, 1);
+            Move(Vector2Int.right, _grid.Width - 2, -1, 0, 1);
         }
 
     }
@@ -72,9 +72,9 @@ public class TileBoard : MonoBehaviour
     {
         bool ischangedBoard = false;
 
-        for (int x = startX; x >= 0 && x < _grid._width; x += incrementX)
+        for (int x = startX; x >= 0 && x < _grid.Width; x += incrementX)
         {
-            for (int y = startY; y >= 0 && y < _grid._height; y += incrementY)
+            for (int y = startY; y >= 0 && y < _grid.Height; y += incrementY)
             {
                 TileCell cell = _grid.GetCell(x, y);
 
@@ -167,7 +167,7 @@ public class TileBoard : MonoBehaviour
             tile.locked = false;
         }
 
-        if (_tiles.Count != _grid._size)
+        if (_tiles.Count != _grid.Size)
         {
             CreateTile();
         }
@@ -181,7 +181,7 @@ public class TileBoard : MonoBehaviour
 
     public bool IsGameOver() //TODO: refactore
     {
-        if (_tiles.Count != _grid._size)
+        if (_tiles.Count != _grid.Size)
         {
             return false;
         }
