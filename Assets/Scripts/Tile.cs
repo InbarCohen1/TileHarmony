@@ -8,10 +8,10 @@ public class Tile : MonoBehaviour
 {
     public TileState State { get; private set; }
     public TileCell Cell { get; private set; }
-    public bool IsLocked { get; set; }  // insures no multiple mergings
+    public bool IsLocked { get; set; }  // Insures no multiple mergings
 
     private Image _background;
-    private TextMeshProUGUI _text; // TODO: just use Text instad of TextMeshPro
+    private TextMeshProUGUI _text; 
 
     [Header("Audio")]
     [SerializeField] private AudioSource _audioSource;
@@ -67,7 +67,7 @@ public class Tile : MonoBehaviour
         }
 
         Cell = null;
-        mergoTo.Tile.IsLocked = true; // disable merging to this tile in the current movement
+        mergoTo.Tile.IsLocked = true; // Disable merging to this tile in the current movement
 
         StartCoroutine(Animate(mergoTo.transform.position, true));
         _audioSource.PlayOneShot(_mergeClip);

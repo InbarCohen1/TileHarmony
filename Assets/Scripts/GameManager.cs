@@ -46,7 +46,6 @@ public class GameManager : MonoBehaviour
 
     public void NewGame()
     {
-        // reset score
         SetScore(0);
         _bestScoreText.text = LoadBestScore().ToString();
 
@@ -54,7 +53,6 @@ public class GameManager : MonoBehaviour
         _gameOver.alpha = 0f;
         _gameOver.interactable = false;
 
-        // update _gameBoard state
         _gameBoard.ClearBoard();
         _gameBoard.CreateTile();
         _gameBoard.CreateTile();

@@ -9,10 +9,9 @@ public class TileBoard : MonoBehaviour
     [SerializeField] private Tile _tilePrefab;
     [SerializeField] private TileState[] _tileStates;
 
-    //public GameManager gameManager;
     private TileGrid _grid;
     private List<Tile> _tiles;
-    private bool _isWaiting;   // waiting for updated states before animaiting
+    private bool _isWaiting;   // Waiting for updated states before animaiting
 
     private void Awake()
     {
@@ -133,8 +132,6 @@ public class TileBoard : MonoBehaviour
 
         int index = Mathf.Clamp(IndexOf(mergeTo.State) + 1, 0, _tileStates.Length - 1);
         TileState newState = _tileStates[index];
-        //int number = mergeTo._number * 2; //TODO: REMOVE
-        // mergeTo.SetState(tileStates[index], number);
 
         mergeTo.SetState(newState);
         GameManager.Instance.IncreaseScore(newState.number);
@@ -143,23 +140,14 @@ public class TileBoard : MonoBehaviour
     private int IndexOf(TileState state)
     {
         return Array.IndexOf(_tileStates, state);
-
-        //for (int i = 0; i < tileStates.Length; i++)
-        //{
-        //    if (state == tileStates[i])
-        //    {
-        //        return i;
-        //    }
-        //}
-
-        //return -1;
+ 
     }
 
     private IEnumerator WaitForChanges()
     {
         _isWaiting = true;
 
-        yield return new WaitForSeconds(0.1f); // same duration as animation
+        yield return new WaitForSeconds(0.1f); // Same duration as of animation
 
         _isWaiting = false;
 
@@ -197,37 +185,6 @@ public class TileBoard : MonoBehaviour
         }
 
         return !IsAnyMergesAvailable();
-
-        ////TODO: helpper func - check if any mergeas are available
-        //foreach (var tile in _tiles)
-        //{
-        //    TileCell up = _grid.GetAdjacentCell(tile.Cell, Vector2Int.up);
-        //    TileCell down = _grid.GetAdjacentCell(tile.Cell, Vector2Int.down);
-        //    TileCell left = _grid.GetAdjacentCell(tile.Cell, Vector2Int.left);
-        //    TileCell right = _grid.GetAdjacentCell(tile.Cell, Vector2Int.right);
-
-        //    if (up != null && CanMerge(tile, up.Tile))
-        //    {
-        //        return false;
-        //    }
-
-        //    if (down != null && CanMerge(tile, down.Tile))
-        //    {
-        //        return false;
-        //    }
-
-        //    if (left != null && CanMerge(tile, left.Tile))
-        //    {
-        //        return false;
-        //    }
-
-        //    if (right != null && CanMerge(tile, right.Tile))
-        //    {
-        //        return false;
-        //    }
-        //}
-
-        //return true;
     }
     private bool IsAnyMergesAvailable()
     {
