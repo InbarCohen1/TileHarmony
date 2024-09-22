@@ -20,7 +20,7 @@ public class TileGrid : MonoBehaviour
 
         for (int i = 0; i < Cells.Length; i++)
         {
-            Cells[i]._cellCoordinates = new Vector2Int(i % Width, i / Width);
+            Cells[i].CellCoordinates = new Vector2Int(i % Width, i / Width);
         }
     }
 
@@ -43,7 +43,7 @@ public class TileGrid : MonoBehaviour
 
     public TileCell GetAdjacentCell(TileCell cell, Vector2Int direction)
     {
-        Vector2Int coordinates = cell._cellCoordinates;
+        Vector2Int coordinates = cell.CellCoordinates;
         coordinates.x += direction.x;
         coordinates.y -= direction.y;
 

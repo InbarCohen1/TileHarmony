@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -5,11 +6,10 @@ using UnityEngine;
 
 public class TileBoard : MonoBehaviour
 {
-    public Tile _tilePrefab; // TODO:  [Header("Bullets")] [SerializeField] private GameObject _bulletPrefab;
-    public GameManager gameManager;
+    [SerializeField] private Tile _tilePrefab;
+    [SerializeField] private TileState[] _tileStates;
 
-    public TileState[] tileStates;
-
+    //public GameManager gameManager;
     private TileGrid _grid;
     private List<Tile> _tiles;
     private bool _isWaiting;   // waiting for updated states before animaiting
@@ -20,12 +20,19 @@ public class TileBoard : MonoBehaviour
         _tiles = new List<Tile>(16);
     }
 
+    public void CreateTile()
+    {
+        Tile tile = Instantiate(_tilePrefab, _grid.transform);
+        tile.SetState(_tileStates[0]);
+        tile.Spawn(_grid.GetRandomEmptyCell());
+        _tiles.Add(tile);
+    }
 
     public void ClearBoard()
     {
         foreach (var cell in _grid.Cells)
         {
-            cell._tile = null;
+            cell.Tile = null;
         }
 
         foreach (var tile in _tiles)
@@ -36,14 +43,6 @@ public class TileBoard : MonoBehaviour
         _tiles.Clear();
     }
 
-
-    public void CreateTile()
-    {
-        Tile tile = Instantiate(_tilePrefab, _grid.transform);
-        tile.SetState(tileStates[0], 2);
-        tile.Spawn(_grid.GetRandomEmptyCell());
-        _tiles.Add(tile);
-    }
 
     private void Update()
     {
@@ -68,7 +67,7 @@ public class TileBoard : MonoBehaviour
 
     }
 
-    private void Move(Vector2Int direction, int startX, int incrementX, int startY, int incrementY) //TODO: Renaming ischangedBoard
+    private void Move(Vector2Int direction, int startX, int incrementX, int startY, int incrementY)
     {
         bool ischangedBoard = false;
 
@@ -80,7 +79,7 @@ public class TileBoard : MonoBehaviour
 
                 if (cell.IsOccupied)
                 {
-                    ischangedBoard |= MoveTile(cell._tile, direction);
+                    ischangedBoard |= MoveTile(cell.Tile, direction);
                 }
             }
         }
@@ -94,15 +93,15 @@ public class TileBoard : MonoBehaviour
     private bool MoveTile(Tile tile, Vector2Int direction)
     {
         TileCell newCell = null;
-        TileCell adjacentCell = _grid.GetAdjacentCell(tile._cell, direction);
+        TileCell adjacentCell = _grid.GetAdjacentCell(tile.Cell, direction);
 
         while (adjacentCell != null)
         {
             if (adjacentCell.IsOccupied)
             {
-                if (CanMerge(tile, adjacentCell._tile))
+                if (CanMerge(tile, adjacentCell.Tile))
                 {
-                    MergeTiles(tile, adjacentCell._tile);
+                    MergeTiles(tile, adjacentCell.Tile);
                     return true;
                 }
 
@@ -122,36 +121,39 @@ public class TileBoard : MonoBehaviour
         return false;
     }
 
-    private bool CanMerge(Tile a, Tile b)
+    private bool CanMerge(Tile mergeFrom, Tile mergeTo)
     {
-        return a._state == b._state && !b.locked;
+        return mergeFrom.State == mergeTo.State && !mergeTo.IsLocked;
     }
 
-    private void MergeTiles(Tile a, Tile b)
+    private void MergeTiles(Tile mergeFrom, Tile mergeTo)
     {
-        _tiles.Remove(a);
-        a.Merge(b._cell); // a is beening merged to b
+        _tiles.Remove(mergeFrom);
+        mergeFrom.Merge(mergeTo.Cell);
 
-        int index = Mathf.Clamp(IndexOf(b._state) + 1, 0, tileStates.Length - 1);
-        //TileState newState = tileStates[index];
-        int number = b._number * 2; //TODO: REMOVE
-        b.SetState(tileStates[index], number);
-        //b.SetState(newState);
-        //GameManager.Instance.IncreaseScore(newState.number);
-        gameManager.IncreaseScore(number);
+        int index = Mathf.Clamp(IndexOf(mergeTo.State) + 1, 0, _tileStates.Length - 1);
+        TileState newState = _tileStates[index];
+        //int number = mergeTo._number * 2; //TODO: REMOVE
+        // mergeTo.SetState(tileStates[index], number);
+
+        mergeFrom.SetState(newState);
+        GameManager.Instance.IncreaseScore(newState.number);
+        //gameManager.IncreaseScore(number);
     }
 
-    private int IndexOf(TileState state) //  TODO : refactore
+    private int IndexOf(TileState state)
     {
-        for (int i = 0; i < tileStates.Length; i++)
-        {
-            if (state == tileStates[i])
-            {
-                return i;
-            }
-        }
+        return Array.IndexOf(_tileStates, state);
 
-        return -1;
+        //for (int i = 0; i < tileStates.Length; i++)
+        //{
+        //    if (state == tileStates[i])
+        //    {
+        //        return i;
+        //    }
+        //}
+
+        //return -1;
     }
 
     private IEnumerator WaitForChanges()
@@ -162,58 +164,102 @@ public class TileBoard : MonoBehaviour
 
         _isWaiting = false;
 
-        foreach (var tile in _tiles)
-        {
-            tile.locked = false;
-        }
+        UnlockAllTiles();
 
-        if (_tiles.Count != _grid.Size)
+        if (!IsGridFull())
         {
             CreateTile();
         }
 
         if (IsGameOver())
         {
-            gameManager.GameOver();
-           // GameManager.Instance.GameOver();
+            GameManager.Instance.GameOver();
         }
+    }
+
+    private void UnlockAllTiles()
+    {
+        foreach (var tile in _tiles)
+        {
+            tile.IsLocked = false;
+        }
+    }
+
+    private bool IsGridFull()
+    {
+        return _tiles.Count == _grid.Size;
     }
 
     public bool IsGameOver() //TODO: refactore
     {
-        if (_tiles.Count != _grid.Size)
+        if (!IsGridFull())
         {
             return false;
         }
-        //TODO: helpper func - check if any mergeas are available
+
+        return !IsAnyMergesAvailable();
+        ////TODO: helpper func - check if any mergeas are available
+        //foreach (var tile in _tiles)
+        //{
+        //    TileCell up = _grid.GetAdjacentCell(tile.Cell, Vector2Int.up);
+        //    TileCell down = _grid.GetAdjacentCell(tile.Cell, Vector2Int.down);
+        //    TileCell left = _grid.GetAdjacentCell(tile.Cell, Vector2Int.left);
+        //    TileCell right = _grid.GetAdjacentCell(tile.Cell, Vector2Int.right);
+
+        //    if (up != null && CanMerge(tile, up.Tile))
+        //    {
+        //        return false;
+        //    }
+
+        //    if (down != null && CanMerge(tile, down.Tile))
+        //    {
+        //        return false;
+        //    }
+
+        //    if (left != null && CanMerge(tile, left.Tile))
+        //    {
+        //        return false;
+        //    }
+
+        //    if (right != null && CanMerge(tile, right.Tile))
+        //    {
+        //        return false;
+        //    }
+        //}
+
+        //return true;
+    }
+    private bool IsAnyMergesAvailable()
+    {
         foreach (var tile in _tiles)
         {
-            TileCell up = _grid.GetAdjacentCell(tile._cell, Vector2Int.up);
-            TileCell down = _grid.GetAdjacentCell(tile._cell, Vector2Int.down);
-            TileCell left = _grid.GetAdjacentCell(tile._cell, Vector2Int.left);
-            TileCell right = _grid.GetAdjacentCell(tile._cell, Vector2Int.right);
-
-            if (up != null && CanMerge(tile, up._tile))
+            if (IsMergesAvailable(tile))
             {
-                return false;
+                return true;
             }
+        }
+        return false;
+    }
+    private bool IsMergesAvailable(Tile tile)
+    {
+        // Get adjacent cells
+        TileCell[] adjacentCells = new TileCell[]
+        {
+        _grid.GetAdjacentCell(tile.Cell, Vector2Int.up),
+        _grid.GetAdjacentCell(tile.Cell, Vector2Int.down),
+        _grid.GetAdjacentCell(tile.Cell, Vector2Int.left),
+        _grid.GetAdjacentCell(tile.Cell, Vector2Int.right)
+        };
 
-            if (down != null && CanMerge(tile, down._tile))
+        // Check if tile can merge with any adjacent tile
+        foreach (TileCell adjacentCell in adjacentCells)
+        {
+            if (adjacentCell != null && CanMerge(tile, adjacentCell.Tile))
             {
-                return false;
-            }
-
-            if (left != null && CanMerge(tile, left._tile))
-            {
-                return false;
-            }
-
-            if (right != null && CanMerge(tile, right._tile))
-            {
-                return false;
+                return true;
             }
         }
 
-        return true;
+        return false;
     }
 }

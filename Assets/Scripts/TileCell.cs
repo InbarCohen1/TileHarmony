@@ -4,8 +4,7 @@ using UnityEngine;
 
 public class TileCell : MonoBehaviour
 {
-    public Vector2Int _cellCoordinates {  get;  set; }
-    public Tile _tile {  get; set; }
-
-    public bool IsOccupied => _tile != null; // TODO: REMOVE??
+    public Vector2Int CellCoordinates {  get;  set; }
+    public Tile Tile {  get; set; }
+    public bool IsOccupied => Tile != null; 
 }

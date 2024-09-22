@@ -6,11 +6,10 @@ using UnityEngine.UI;
 
 public class Tile : MonoBehaviour
 {
-    public TileState _state { get; private set; }
-    public TileCell _cell { get; private set; }
-    public bool locked { get; set; }  // insures no multiple mergings
+    public TileState State { get; private set; }
+    public TileCell Cell { get; private set; }
+    public bool IsLocked { get; set; }  // insures no multiple mergings
 
-    public int _number { get; private set; } // TODO:rename ->value
     private Image _background;
     private TextMeshProUGUI _text; // TODO: just use Text instad of TextMeshPro
 
@@ -24,38 +23,37 @@ public class Tile : MonoBehaviour
         _background = GetComponent<Image>();
         _text = GetComponentInChildren<TextMeshProUGUI>();
     }
-    public void SetState(TileState state, int number)
+    public void SetState(TileState newState)
     {
-        _state = state;
-        _number = number;
+        State = newState;
 
-        _background.color = _state.backgroundColor;
-        _text.color = _state.textColor;
-        _text.text = _number.ToString();
+        _background.color = State.backgroundColor;
+        _text.color = State.textColor;
+        _text.text = newState.number.ToString();
     }
 
     public void Spawn(TileCell cell)
     {
-        if(_cell is not null)
+        if(Cell != null)
         {
-            _cell._tile = null;
+            Cell.Tile = null;
         }
 
-        _cell = cell;
-        _cell._tile = this;
+        Cell = cell;
+        Cell.Tile = this;
 
-        transform.position = _cell.transform.position;
+        transform.position = Cell.transform.position;
     }
 
     public void MoveTo(TileCell cell)
     {
-        if (_cell is not null)
+        if (Cell != null)
         {
-            _cell._tile = null;
+            Cell.Tile = null;
         }
 
-        _cell = cell;
-        _cell._tile = this;
+        Cell = cell;
+        Cell.Tile = this;
 
         StartCoroutine(Animate(cell.transform.position, false));
         _audioSource.PlayOneShot(_moveClip);
@@ -64,13 +62,13 @@ public class Tile : MonoBehaviour
     //cell param is the one we merge to
     public void Merge(TileCell cell)
     {
-        if (_cell != null)
+        if (Cell != null)
         {
-            _cell._tile = null;
+            Cell.Tile = null;
         }
 
-        _cell = null;
-        cell._tile.locked = true; // disable merging to this tile in the current movement
+        Cell = null;
+        cell.Tile.IsLocked = true; // disable merging to this tile in the current movement
 
         StartCoroutine(Animate(cell.transform.position, true));
         _audioSource.PlayOneShot(_mergeClip);

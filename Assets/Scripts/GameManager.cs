@@ -6,6 +6,7 @@ using UnityEngine.SocialPlatforms.Impl;
 
 public class GameManager : MonoBehaviour
 {
+    public static GameManager Instance { get; private set; }
 
     [Header("TileBoard")]
     [SerializeField] private TileBoard _gameBoard;
@@ -14,7 +15,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _scoreText;
     [SerializeField] private TextMeshProUGUI _bestScoreText;
 
-    public int _score { get; private set; } = 0;
+    public int Score { get; private set; } = 0;
 
     private void Start()
     {
@@ -67,12 +68,12 @@ public class GameManager : MonoBehaviour
 
     public void IncreaseScore(int points)
     {
-        SetScore(_score + points);
+        SetScore(Score + points);
     }
 
     private void SetScore(int score)
     {
-        _score = score;
+        Score = score;
         _scoreText.text = score.ToString();
 
         SaveHighscore();
@@ -82,9 +83,9 @@ public class GameManager : MonoBehaviour
     {
         int hiscore = LoadBestScore();
 
-        if (_score > hiscore)
+        if (Score > hiscore)
         {
-            PlayerPrefs.SetInt("bestScore", _score);
+            PlayerPrefs.SetInt("bestScore", Score);
         }
     }
 
