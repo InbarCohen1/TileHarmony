@@ -29,8 +29,8 @@ public class Tile : MonoBehaviour
         _state = state;
         _number = number;
 
-        _background.color = _state._backgroundColor;
-        _text.color = _state._textColor;
+        _background.color = _state.backgroundColor;
+        _text.color = _state.textColor;
         _text.text = _number.ToString();
     }
 
