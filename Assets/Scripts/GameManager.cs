@@ -9,6 +9,7 @@ using UnityEngine.UI;
 public class GameManager : MonoBehaviour
 {
     private const string HiScore = "HiScore";
+    public bool IsGameStarted { get; private set; } = false;
     public static GameManager Instance { get; private set; }
     public int Score { get; private set; } = 0;
     [SerializeField] private CanvasGroup _gameOver;
@@ -43,6 +44,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        IsGameStarted = true;
         NewGame();
     }
 
@@ -118,6 +120,7 @@ public class GameManager : MonoBehaviour
 
     public void QuitGame()
     {
+        IsGameStarted = false;
         Application.Quit();
 
 #if UNITY_EDITOR

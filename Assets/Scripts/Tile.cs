@@ -56,7 +56,10 @@ public class Tile : MonoBehaviour
         Cell.Tile = this;
 
         StartCoroutine(Animate(cell.transform.position, false));
-        _audioSource.PlayOneShot(_moveClip);
+        if (GameManager.Instance.IsGameStarted)  
+        {
+            _audioSource.PlayOneShot(_moveClip);
+        }
     }
 
     public void Merge(TileCell mergoTo)
@@ -70,7 +73,10 @@ public class Tile : MonoBehaviour
         mergoTo.Tile.IsLocked = true; // Disable merging to this tile in the current movement
 
         StartCoroutine(Animate(mergoTo.transform.position, true));
-        _audioSource.PlayOneShot(_mergeClip);
+        if (GameManager.Instance.IsGameStarted) 
+        {
+            _audioSource.PlayOneShot(_mergeClip);
+        }
     }
 
 
