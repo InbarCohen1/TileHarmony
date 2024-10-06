@@ -50,7 +50,6 @@ public class TileGrid : MonoBehaviour
         return GetCell(coordinates);
     }
 
-
     public TileCell GetRandomEmptyCell() 
     {
         int index = Random.Range(0, Size);

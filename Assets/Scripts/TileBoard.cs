@@ -218,4 +218,34 @@ public class TileBoard : MonoBehaviour
 
         return false;
     }
+
+    public List<Tile> GetAllTiles()
+    {
+        return _tiles;
+    }
+
+    public void RestoreTiles(List<Vector2Int> positions, List<int> values)
+    {
+        ClearBoard(); 
+
+        for (int i = 0; i < positions.Count; i++)
+        {
+            Tile tile = Instantiate(_tilePrefab, _grid.transform);
+            tile.SetState(_tileStates[IndexOf(values[i])]);
+            tile.Spawn(_grid.GetCell(positions[i])); 
+            _tiles.Add(tile);
+        }
+    }
+
+    private int IndexOf(int value)
+    {
+        for (int i = 0; i < _tileStates.Length; i++)
+        {
+            if (_tileStates[i].number == value)
+            {
+                return i;
+            }
+        }
+        return 0;
+    }
 }
