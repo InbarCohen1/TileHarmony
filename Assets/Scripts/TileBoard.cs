@@ -54,28 +54,54 @@ public class TileBoard : MonoBehaviour
             return;
         }
 
-        // Save game state before every move
-        GameManager.Instance.SaveGameState();
+        var keyDirectionMap = new Dictionary<KeyCode, (Vector2Int direction, int startX, int incrementX, int startY, int incrementY)>
+        {
+            { KeyCode.W, (Vector2Int.up, 0, 1, 1, 1) },
+            { KeyCode.UpArrow, (Vector2Int.up, 0, 1, 1, 1) },
+            { KeyCode.A, (Vector2Int.left, 1, 1, 0, 1) },
+            { KeyCode.LeftArrow, (Vector2Int.left, 1, 1, 0, 1) },
+            { KeyCode.S, (Vector2Int.down, 0, 1, _grid.Height - 2, -1) },
+            { KeyCode.DownArrow, (Vector2Int.down, 0, 1, _grid.Height - 2, -1) },
+            { KeyCode.D, (Vector2Int.right, _grid.Width - 2, -1, 0, 1) },
+            { KeyCode.RightArrow, (Vector2Int.right, _grid.Width - 2, -1, 0, 1) }
+        };
 
-        if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
+        foreach (var keyDirection in keyDirectionMap)
         {
-            Move(Vector2Int.up, 0, 1, 1, 1);
-        }
-        else if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            Move(Vector2Int.left, 1, 1, 0, 1);
-        }
-        else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
-        {
-            Move(Vector2Int.down, 0, 1, _grid.Height - 2, -1);
-        }
-        else if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            Move(Vector2Int.right, _grid.Width - 2, -1, 0, 1);
+            if (Input.GetKeyDown(keyDirection.Key))
+            {
+                SaveCurrentGameState();
+                Move(keyDirection.Value.direction, keyDirection.Value.startX, keyDirection.Value.incrementX, keyDirection.Value.startY, keyDirection.Value.incrementY);
+                
+               
+                break;
+            }
         }
     }
 
-    private void Move(Vector2Int direction, int startX, int incrementX, int startY, int incrementY)
+    private void SaveCurrentGameState() // TODO: refactore
+    {
+        List<Vector2Int> positions = new List<Vector2Int>();
+        List<int> values = new List<int>();
+
+        for (int x = 0; x < _grid.Width; x++)
+        {
+            for (int y = 0; y < _grid.Height; y++)
+            {
+                Tile tile = _grid.GetCell(x, y).Tile;
+
+                if (tile != null)
+                {
+                    positions.Add(new Vector2Int(x, y));
+                    values.Add(tile.State.number);
+                }
+            }
+        }
+
+        GameManager.Instance.SaveGameState(new GameState(positions, values, GameManager.Instance.Score));
+    }
+
+    private bool Move(Vector2Int direction, int startX, int incrementX, int startY, int incrementY)
     {
         bool ischangedBoard = false;
 
@@ -96,6 +122,8 @@ public class TileBoard : MonoBehaviour
         {
             StartCoroutine(WaitForChanges());
         }
+
+        return ischangedBoard;
     }
 
     private bool MoveTile(Tile tile, Vector2Int direction)
@@ -149,7 +177,6 @@ public class TileBoard : MonoBehaviour
     private int IndexOf(TileState state)
     {
         return Array.IndexOf(_tileStates, state);
- 
     }
 
     private IEnumerator WaitForChanges()
@@ -228,19 +255,23 @@ public class TileBoard : MonoBehaviour
         return false;
     }
 
-
-    public void RestoreTiles(List<Vector2Int> positions, List<int> values)
+    public void RestoreGameState(GameState gameState)
     {
-        ClearBoard(); 
+        ClearBoard();
 
-        for (int i = 0; i < positions.Count; i++)
+        for (int i = 0; i < gameState.TilePositions.Count; i++)
         {
+            Vector2Int position = gameState.TilePositions[i];
+            int value = gameState.TileValues[i];
             Tile tile = Instantiate(_tilePrefab, _grid.transform);
-            tile.SetState(_tileStates[IndexOf(values[i])]);
-            tile.Spawn(_grid.GetCell(positions[i])); 
+            tile.SetState(_tileStates[IndexOf(value)]);
+            tile.Spawn(_grid.GetCell(position));
             _tiles.Add(tile);
         }
+
+        GameManager.Instance.SetScore(gameState.Score);
     }
+
 
     private int IndexOf(int value)
     {

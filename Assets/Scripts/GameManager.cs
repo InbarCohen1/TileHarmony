@@ -8,7 +8,7 @@ using UnityEngine.UI;
 [DefaultExecutionOrder(-1)]
 public class GameManager : MonoBehaviour
 {
-    private GameState _previousState;
+    private GameState _savedGameState;
 
     private const string HiScore = "HiScore";
     public bool IsGameStarted { get; private set; } = false;
@@ -88,7 +88,7 @@ public class GameManager : MonoBehaviour
         SetScore(Score + points);
     }
 
-    private void SetScore(int newScore)
+    public void SetScore(int newScore)
     {
         Score = newScore;
         _scoreText.text = newScore.ToString();
@@ -129,30 +129,17 @@ public class GameManager : MonoBehaviour
 #endif
     }
 
-    // Save the game state
-    public void SaveGameState()
+    public void SaveGameState(GameState gameState)
     {
-        List<Vector2Int> positions = new List<Vector2Int>();
-        List<int> values = new List<int>();
-
-        foreach (var tile in _gameBoard.GetAllTiles())
-        {
-            positions.Add(tile.Cell.CellCoordinates);
-            values.Add(tile.State.number);
-        }
-
-        _previousState = new GameState(positions, values, Score);
+        _savedGameState = gameState;
     }
 
-    // Restore the previous game state (Undo functionality)
     public void RestoreGameState()
     {
-        if (_previousState != null)
+        if (_savedGameState != null)
         {
-            _gameBoard.RestoreTiles(_previousState.TilePositions, _previousState.TileValues);
-            Score = _previousState.Score;
+            _gameBoard.RestoreGameState(_savedGameState);
         }
     }
-
 }
 
