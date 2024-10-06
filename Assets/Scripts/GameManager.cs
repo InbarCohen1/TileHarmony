@@ -8,6 +8,8 @@ using UnityEngine.UI;
 [DefaultExecutionOrder(-1)]
 public class GameManager : MonoBehaviour
 {
+    private GameState _previousState;
+
     private const string HiScore = "HiScore";
     public bool IsGameStarted { get; private set; } = false;
     public static GameManager Instance { get; private set; }
@@ -62,7 +64,6 @@ public class GameManager : MonoBehaviour
         _gameBoard.CreateTile();
         _gameBoard.enabled = true;
     }
-
 
     private IEnumerator Fade(CanvasGroup canvasGroup, float to, float delay = 0f)
     {
@@ -128,6 +129,30 @@ public class GameManager : MonoBehaviour
 #endif
     }
 
+    // Save the game state
+    public void SaveGameState()
+    {
+        List<Vector2Int> positions = new List<Vector2Int>();
+        List<int> values = new List<int>();
+
+        foreach (var tile in _gameBoard.GetAllTiles())
+        {
+            positions.Add(tile.Cell.CellCoordinates);
+            values.Add(tile.State.number);
+        }
+
+        _previousState = new GameState(positions, values, Score);
+    }
+
+    // Restore the previous game state (Undo functionality)
+    public void RestoreGameState()
+    {
+        if (_previousState != null)
+        {
+            _gameBoard.RestoreTiles(_previousState.TilePositions, _previousState.TileValues);
+            Score = _previousState.Score;
+        }
+    }
 
 }
 

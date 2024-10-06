@@ -19,6 +19,8 @@ public class TileBoard : MonoBehaviour
         _tiles = new List<Tile>(16);
     }
 
+    public List<Tile> GetAllTiles() => _tiles;
+
     public void CreateTile()
     {
         Tile tile = Instantiate(_tilePrefab, _grid.transform);
@@ -42,10 +44,18 @@ public class TileBoard : MonoBehaviour
         _tiles.Clear();
     }
 
-
     private void Update()
     {
         if (_isWaiting) return;
+
+        if (Input.GetKeyDown(KeyCode.Z))
+        {
+            GameManager.Instance.RestoreGameState();
+            return;
+        }
+
+        // Save game state before every move
+        GameManager.Instance.SaveGameState();
 
         if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
         {
@@ -63,7 +73,6 @@ public class TileBoard : MonoBehaviour
         {
             Move(Vector2Int.right, _grid.Width - 2, -1, 0, 1);
         }
-
     }
 
     private void Move(Vector2Int direction, int startX, int incrementX, int startY, int incrementY)
@@ -177,7 +186,7 @@ public class TileBoard : MonoBehaviour
         return _tiles.Count == _grid.Size;
     }
 
-    public bool IsGameOver() //TODO: refactore
+    public bool IsGameOver()
     {
         if (!IsGridFull())
         {
@@ -219,10 +228,6 @@ public class TileBoard : MonoBehaviour
         return false;
     }
 
-    public List<Tile> GetAllTiles()
-    {
-        return _tiles;
-    }
 
     public void RestoreTiles(List<Vector2Int> positions, List<int> values)
     {
