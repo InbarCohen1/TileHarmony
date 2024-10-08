@@ -6,12 +6,16 @@ using UnityEngine;
 
 public class TileBoard : MonoBehaviour
 {
+    [SerializeField] private LayerMask tileLayerMask; // Ensure this is set to the layer of your tiles
+
     [SerializeField] private Tile _tilePrefab;
     [SerializeField] private TileState[] _tileStates;
 
     private TileGrid _grid;
     private List<Tile> _tiles;
     private bool _isWaiting;   // Waiting for updated states before animaiting
+    private bool _isTileRemovalMode = false;
+    private Vector3 worldPosition;
 
     private void Awake()
     {
@@ -26,6 +30,26 @@ public class TileBoard : MonoBehaviour
         Tile tile = Instantiate(_tilePrefab, _grid.transform);
         tile.SetState(_tileStates[0]);
         tile.Spawn(_grid.GetRandomEmptyCell());
+        tile.gameObject.layer = LayerMask.NameToLayer("Tiles");
+        
+        // Ensure the tile has a collider component
+        BoxCollider2D tileCollider = tile.GetComponent<BoxCollider2D>();
+        if (tileCollider == null)
+        {
+            Debug.Log("Adding BoxCollider2D to tile");
+            tileCollider = tile.gameObject.AddComponent<BoxCollider2D>(); // Add a BoxCollider2D if none exists
+        }
+
+        // Adjust the collider size (scale it up slightly by 1.05x)
+        tileCollider.size = new Vector2(tileCollider.size.x * 1.05f, tileCollider.size.y * 1.05f);
+        Debug.Log($"Collider size after scaling: {tileCollider.size}");
+
+        // Check if the tile is within the camera's viewport
+        Vector3 viewportPosition = Camera.main.WorldToViewportPoint(tile.transform.position);
+        bool isInView = viewportPosition.x >= 0 && viewportPosition.x <= 1 && viewportPosition.y >= 0 && viewportPosition.y <= 1;
+
+        Debug.Log($"Created tile at position: {tile.transform.position}, Viewport position: {viewportPosition}, In view: {isInView}");
+
         _tiles.Add(tile);
     }
 
@@ -47,6 +71,19 @@ public class TileBoard : MonoBehaviour
     private void Update()
     {
         if (_isWaiting) return;
+
+        Debug.Log($"Tile removal mode is: + {_isTileRemovalMode}");
+
+        if (_isTileRemovalMode && Input.GetMouseButtonDown(0))
+        {
+            bool tileRemoved = RemoveTileAtMousePosition();
+            if (tileRemoved)
+            {
+                _isTileRemovalMode = false; // Reset the flag only if a tile was removed
+                Debug.Log("Tile removal mode disabled");
+            }
+            return;
+        }
 
         if (Input.GetKeyDown(KeyCode.Z))
         {
@@ -72,8 +109,6 @@ public class TileBoard : MonoBehaviour
             {
                 SaveCurrentGameState();
                 Move(keyDirection.Value.direction, keyDirection.Value.startX, keyDirection.Value.incrementX, keyDirection.Value.startY, keyDirection.Value.incrementY);
-                
-               
                 break;
             }
         }
@@ -284,4 +319,102 @@ public class TileBoard : MonoBehaviour
         }
         return 0;
     }
+    public void ShuffleTiles()
+    {
+        List<Tile> shuffledTiles = new List<Tile>(_tiles);
+        System.Random rng = new System.Random();
+        int n = shuffledTiles.Count;
+
+        while (n > 1)
+        {
+            n--;
+            int k = rng.Next(n + 1);
+            Tile value = shuffledTiles[k];
+            shuffledTiles[k] = shuffledTiles[n];
+            shuffledTiles[n] = value;
+        }
+
+        // Clear the board without destroying the tiles
+        foreach (var cell in _grid.Cells)
+        {
+            cell.Tile = null;
+        }
+
+
+        // Clear the _tiles list to avoid duplicates
+        _tiles.Clear();
+
+        // Re-add the shuffled tiles to the board
+        foreach (Tile tile in shuffledTiles)
+        {
+            TileCell randomCell = _grid.GetRandomEmptyCell();
+            tile.Spawn(randomCell);
+            _tiles.Add(tile);
+        }
+    }
+    public void EnableTileRemovalMode()
+    {
+        _isTileRemovalMode = true;
+        Debug.Log("Tile removal mode enabled");
+    }
+
+    private bool RemoveTileAtMousePosition()
+    {
+
+        Vector3 mousePosition = Input.mousePosition;
+        Debug.Log($"Mouse Position (Screen): {mousePosition}");
+
+        // Convert mouse position to world coordinates with a fixed Z value
+        worldPosition = Camera.main.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, 10.0f)); // Adjust Z as needed
+        Debug.Log($"Converted World Position: {worldPosition}");
+        worldPosition.z = 0; // Ensure Z position is 0 for 2D
+
+        // Use OverlapPoint to detect the tile
+        Collider2D hitCollider = Physics2D.OverlapPoint(worldPosition, tileLayerMask);
+
+
+        // Log all tiles and their colliders for verification
+        foreach (Tile tile in _tiles)
+        {
+            Debug.Log($"Tile: {tile.name} at position: {tile.transform.position}, Collider Bounds: {tile.GetComponent<Collider2D>().bounds}");
+        }
+
+        if (hitCollider != null)
+        {
+            Debug.Log($"Hit Collider: {hitCollider.name}, Bounds: {hitCollider.bounds}");
+            Tile tile = hitCollider.GetComponent<Tile>();
+            if (tile != null)
+            {
+                Debug.Log($"Tile selected for removal: {tile.name}");
+                RemoveTile(tile);
+                return true;
+            }
+            else
+            {
+                Debug.Log("No Tile component found on the hit object.");
+            }
+        }
+        else
+        {
+            Debug.Log("No collider hit.");
+        }
+        return false;
+    }
+
+    private void RemoveTile(Tile tile)
+    {
+        _tiles.Remove(tile);
+        tile.Cell.Tile = null;
+        Destroy(tile.gameObject);
+        Debug.Log("Tile removed: " + tile.name);
+    }
+
+    // Gizmo drawing method to visualize worldPosition in Scene view
+    void OnDrawGizmos()
+    {
+        // Draw a small red sphere at the last calculated world position
+        Gizmos.color = Color.red;
+        Gizmos.DrawSphere(worldPosition, 0.1f); // Adjust size as needed
+    }
+
 }

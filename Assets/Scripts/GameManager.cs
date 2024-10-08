@@ -141,5 +141,15 @@ public class GameManager : MonoBehaviour
             _gameBoard.RestoreGameState(_savedGameState);
         }
     }
+    public void ShuffleBoard()
+    {
+        _gameBoard.ShuffleTiles();
+    }
+
+    public void EnableTileRemovalMode()
+    {
+        _gameBoard.EnableTileRemovalMode();
+    }
+
 }
 
