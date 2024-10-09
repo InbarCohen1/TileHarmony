@@ -14,6 +14,7 @@ public class ToolManager : Singleton<ToolManager>
     }
 
     private ToolType _activeTool = ToolType.None;
+    public ToolType ActiveTool => _activeTool;
 
     public void ActivateTool(ToolType tool)
     {
@@ -35,4 +36,5 @@ public class ToolManager : Singleton<ToolManager>
     {
         return _activeTool != ToolType.None;
     }
+
 }

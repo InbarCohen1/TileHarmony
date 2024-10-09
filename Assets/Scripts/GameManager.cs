@@ -140,16 +140,18 @@ public class GameManager : MonoBehaviour
             _gameBoard.RestoreGameState(_savedGameState);
         }
     }
-    public void ShuffleBoard()
-    {
-        _gameBoard.ShuffleTiles();
-    }
 
-    public void EnableTileRemovalMode()
+    private void Update()  //TODO:To Remove?
     {
-        _gameBoard.EnableTileRemovalMode();
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            ToolManager.Instance.ActivateTool(ToolManager.ToolType.RemoveTile);
+        }
+        else if (Input.GetKeyDown(KeyCode.F))
+        {
+            ToolManager.Instance.ActivateTool(ToolManager.ToolType.Freeze);
+        }
     }
-
 
 }
 

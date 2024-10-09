@@ -14,11 +14,11 @@ public class TileBoard : MonoBehaviour
     private TileGrid _grid;
     private List<Tile> _tiles;
     private bool _isWaiting;   // Waiting for updated states before animaiting
-    private bool _isTileRemovalMode = false;
     private Vector3 worldPosition;
     private Booster _booster;
     private Tile _frozenTile;
     private int _freezeMovesLeft;
+
 
     private void Awake()
     {
@@ -49,10 +49,9 @@ public class TileBoard : MonoBehaviour
         tileCollider.size = new Vector2(tileCollider.size.x * 1.05f, tileCollider.size.y * 1.05f);
         Debug.Log($"Collider size after scaling: {tileCollider.size}");
 
-        // Check if the tile is within the camera's viewport
+        // Check if the tile is within the camera's viewport ////// TODO: Remove this code
         Vector3 viewportPosition = Camera.main.WorldToViewportPoint(tile.transform.position);
         bool isInView = viewportPosition.x >= 0 && viewportPosition.x <= 1 && viewportPosition.y >= 0 && viewportPosition.y <= 1;
-
         Debug.Log($"Created tile at position: {tile.transform.position}, Viewport position: {viewportPosition}, In view: {isInView}");
 
         _tiles.Add(tile);
@@ -77,21 +76,52 @@ public class TileBoard : MonoBehaviour
     {
         if (_isWaiting) return;
 
-       
+        HandleToolUsage();
+        HandleGameControls();
+    }
 
-        if (_isTileRemovalMode && Input.GetMouseButtonDown(0))
+    private void HandleToolUsage() // TODO: Refactor    
+    {
+        if (ToolManager.Instance.IsAnyToolActive())
         {
-            bool tileRemoved = RemoveTileAtMousePosition();
-            if (tileRemoved)
+            if (ToolManager.Instance.IsToolActive(ToolManager.ToolType.RemoveTile) && Input.GetMouseButtonDown(0))
             {
-                _isTileRemovalMode = false; // Reset the flag only if a tile was removed
-                Debug.Log("Tile removal mode disabled");
+                bool tileRemoved = RemoveTileAtMousePosition();
+                if (tileRemoved)
+                {
+                    ToolManager.Instance.DeactivateTool();
+                }
+                return;
             }
-            return;
+
+            if (ToolManager.Instance.IsToolActive(ToolManager.ToolType.Freeze) && Input.GetMouseButtonDown(0))
+            {
+                bool tileFrozen = FreezeTileAtMousePosition();
+                if (tileFrozen)
+                {
+                    ToolManager.Instance.DeactivateTool();
+                }
+                return;
+            }
+
+            if (ToolManager.Instance.IsToolActive(ToolManager.ToolType.Shuffle) && Input.GetMouseButtonDown(0))
+            {
+                ShuffleTiles();
+                ToolManager.Instance.DeactivateTool();
+                return;
+            }
+
+            if (ToolManager.Instance.IsToolActive(ToolManager.ToolType.Undo) && Input.GetMouseButtonDown(0))
+            {
+                UndoLastMove();
+                ToolManager.Instance.DeactivateTool();
+                return;
+            }
         }
+    }
 
-        HandleBoosterUsage();
-
+    private void HandleGameControls()
+    {
         if (Input.GetKeyDown(KeyCode.Z))
         {
             GameManager.Instance.RestoreGameState();
@@ -116,11 +146,18 @@ public class TileBoard : MonoBehaviour
             {
                 SaveCurrentGameState();
                 Move(keyDirection.Value.direction, keyDirection.Value.startX, keyDirection.Value.incrementX, keyDirection.Value.startY, keyDirection.Value.incrementY);
+                if (_frozenTile != null && _freezeMovesLeft > 0)
+                {
+                    _freezeMovesLeft--;
+                    if (_freezeMovesLeft == 0)
+                    {
+                        _frozenTile = null;
+                    }
+                }
                 break;
             }
         }
     }
-
     private void SaveCurrentGameState() // TODO: refactore
     {
         List<Vector2Int> positions = new List<Vector2Int>();
@@ -366,11 +403,6 @@ public class TileBoard : MonoBehaviour
             _tiles.Add(tile);
         }
     }
-    public void EnableTileRemovalMode()
-    {
-        _isTileRemovalMode = true;
-        Debug.Log("Tile removal mode enabled");
-    }
 
     private bool RemoveTileAtMousePosition()
     {
@@ -456,4 +488,36 @@ public class TileBoard : MonoBehaviour
             TileState newState = UpdateTileState(selectedTile);
         }
     }
+
+    private bool FreezeTileAtMousePosition()
+    {
+        Vector3 mousePosition = Input.mousePosition;
+        Vector3 worldPosition = Camera.main.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, 10.0f));
+        worldPosition.z = 0;
+
+        Collider2D hitCollider = Physics2D.OverlapPoint(worldPosition);
+
+        if (hitCollider != null)
+        {
+            Tile tile = hitCollider.GetComponent<Tile>();
+            if (tile != null)
+            {
+                FreezeTile(tile);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void FreezeTile(Tile tile)
+    {
+        _frozenTile = tile;
+        _freezeMovesLeft = 15; // Example: freeze for 3 moves
+    }
+
+    private void UndoLastMove()
+    {
+        GameManager.Instance.RestoreGameState();
+    }
+
 }
