@@ -17,6 +17,8 @@ public class TileBoard : MonoBehaviour
     private bool _isTileRemovalMode = false;
     private Vector3 worldPosition;
     private Booster _booster;
+    private Tile _frozenTile;
+    private int _freezeMovesLeft;
 
     private void Awake()
     {
@@ -75,7 +77,7 @@ public class TileBoard : MonoBehaviour
     {
         if (_isWaiting) return;
 
-        Debug.Log($"Tile removal mode is: + {_isTileRemovalMode}");
+       
 
         if (_isTileRemovalMode && Input.GetMouseButtonDown(0))
         {
