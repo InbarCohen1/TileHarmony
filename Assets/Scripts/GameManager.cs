@@ -23,7 +23,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _scoreText;
     [SerializeField] private TextMeshProUGUI _hiScoreText;
 
-
     private void Awake()
     {
         if (Instance == null)
@@ -150,6 +149,7 @@ public class GameManager : MonoBehaviour
     {
         _gameBoard.EnableTileRemovalMode();
     }
+
 
 }
 

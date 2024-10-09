@@ -7,20 +7,23 @@ using UnityEngine;
 public class TileBoard : MonoBehaviour
 {
     [SerializeField] private LayerMask tileLayerMask; // Ensure this is set to the layer of your tiles
-
     [SerializeField] private Tile _tilePrefab;
     [SerializeField] private TileState[] _tileStates;
+    [SerializeField] private InputController _inputController;
 
     private TileGrid _grid;
     private List<Tile> _tiles;
     private bool _isWaiting;   // Waiting for updated states before animaiting
     private bool _isTileRemovalMode = false;
     private Vector3 worldPosition;
+    private Booster _booster;
 
     private void Awake()
     {
         _grid = GetComponentInChildren<TileGrid>();
         _tiles = new List<Tile>(16);
+        _booster = gameObject.AddComponent<Booster>();
+        _booster.Initialize(this);
     }
 
     public List<Tile> GetAllTiles() => _tiles;
@@ -84,6 +87,8 @@ public class TileBoard : MonoBehaviour
             }
             return;
         }
+
+        HandleBoosterUsage();
 
         if (Input.GetKeyDown(KeyCode.Z))
         {
@@ -202,13 +207,17 @@ public class TileBoard : MonoBehaviour
         _tiles.Remove(mergeFrom);
         mergeFrom.Merge(mergeTo.Cell);
 
-        int index = Mathf.Clamp(IndexOf(mergeTo.State) + 1, 0, _tileStates.Length - 1);
-        TileState newState = _tileStates[index];
-
-        mergeTo.SetState(newState);
+        TileState newState = UpdateTileState(mergeTo);
         GameManager.Instance.IncreaseScore(newState.number);
     }
 
+    public TileState UpdateTileState(Tile tile)
+    {
+        int index = Mathf.Clamp(IndexOf(tile.State) + 1, 0, _tileStates.Length - 1);
+        TileState newState = _tileStates[index];
+        tile.SetState(newState);
+        return newState;
+    }
     private int IndexOf(TileState state)
     {
         return Array.IndexOf(_tileStates, state);
@@ -307,7 +316,6 @@ public class TileBoard : MonoBehaviour
         GameManager.Instance.SetScore(gameState.Score);
     }
 
-
     private int IndexOf(int value)
     {
         for (int i = 0; i < _tileStates.Length; i++)
@@ -318,6 +326,10 @@ public class TileBoard : MonoBehaviour
             }
         }
         return 0;
+    }
+    public Tile GetTileAt(int x, int y)
+    {
+        return _grid.GetCell(x, y).Tile;
     }
     public void ShuffleTiles()
     {
@@ -416,5 +428,30 @@ public class TileBoard : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawSphere(worldPosition, 0.1f); // Adjust size as needed
     }
+    private void HandleBoosterUsage()
+    {
+        if (_inputController.IsBoosterActive && Input.GetMouseButtonDown(0))
+        {
+            Debug.Log("Handle Booster Mode.");
+            Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            RaycastHit2D hit = Physics2D.Raycast(mousePosition, Vector2.zero);
 
+            if (hit.collider != null)
+            {
+                Tile selectedTile = hit.collider.GetComponent<Tile>();
+                if (selectedTile != null)
+                {
+                    UseBoosterOnTile(selectedTile);
+                    _inputController.DeactivateBooster();
+                }
+            }
+        }
+    }
+    public void UseBoosterOnTile(Tile selectedTile)
+    {
+        if (selectedTile != null)
+        {
+            TileState newState = UpdateTileState(selectedTile);
+        }
+    }
 }
