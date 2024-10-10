@@ -16,8 +16,8 @@ public class TileBoard : MonoBehaviour
     private bool _isWaiting;   // Waiting for updated states before animaiting
     private Vector3 worldPosition;
     private Booster _booster;
-    private Tile _frozenTile;
-    private int _freezeMovesLeft;
+    private Tile _LockedTile;
+    private int _LockedMovesLeft;
 
 
     private void Awake()
@@ -36,7 +36,7 @@ public class TileBoard : MonoBehaviour
         tile.SetState(_tileStates[0]);
         tile.Spawn(_grid.GetRandomEmptyCell());
         tile.gameObject.layer = LayerMask.NameToLayer("Tiles");
-        
+
         // Ensure the tile has a collider component
         BoxCollider2D tileCollider = tile.GetComponent<BoxCollider2D>();
         if (tileCollider == null)
@@ -84,6 +84,7 @@ public class TileBoard : MonoBehaviour
     {
         if (ToolManager.Instance.IsAnyToolActive())
         {
+            Debug.Log($"Inside HandleToolUsage ");
             if (ToolManager.Instance.IsToolActive(ToolManager.ToolType.RemoveTile) && Input.GetMouseButtonDown(0))
             {
                 bool tileRemoved = RemoveTileAtMousePosition();
@@ -94,9 +95,9 @@ public class TileBoard : MonoBehaviour
                 return;
             }
 
-            if (ToolManager.Instance.IsToolActive(ToolManager.ToolType.Freeze) && Input.GetMouseButtonDown(0))
+            if (ToolManager.Instance.IsToolActive(ToolManager.ToolType.LockTile) && Input.GetMouseButtonDown(0))
             {
-                bool tileFrozen = FreezeTileAtMousePosition();
+                bool tileFrozen = LockTileAtMousePosition();
                 if (tileFrozen)
                 {
                     ToolManager.Instance.DeactivateTool();
@@ -111,23 +112,21 @@ public class TileBoard : MonoBehaviour
                 return;
             }
 
-            if (ToolManager.Instance.IsToolActive(ToolManager.ToolType.Undo) && Input.GetMouseButtonDown(0))
+            if (ToolManager.Instance.IsToolActive(ToolManager.ToolType.Booster) && Input.GetMouseButtonDown(0))
             {
-                UndoLastMove();
-                ToolManager.Instance.DeactivateTool();
+                bool tileBoostern = HandleBoosterUsage();
+                if (tileBoostern)
+                {
+                    ToolManager.Instance.DeactivateTool();
+                }
                 return;
             }
+
         }
     }
 
     private void HandleGameControls()
     {
-        if (Input.GetKeyDown(KeyCode.Z))
-        {
-            GameManager.Instance.RestoreGameState();
-            return;
-        }
-
         var keyDirectionMap = new Dictionary<KeyCode, (Vector2Int direction, int startX, int incrementX, int startY, int incrementY)>
         {
             { KeyCode.W, (Vector2Int.up, 0, 1, 1, 1) },
@@ -146,12 +145,13 @@ public class TileBoard : MonoBehaviour
             {
                 SaveCurrentGameState();
                 Move(keyDirection.Value.direction, keyDirection.Value.startX, keyDirection.Value.incrementX, keyDirection.Value.startY, keyDirection.Value.incrementY);
-                if (_frozenTile != null && _freezeMovesLeft > 0)
+                if (_LockedTile != null && _LockedMovesLeft > 0)
                 {
-                    _freezeMovesLeft--;
-                    if (_freezeMovesLeft == 0)
+                    _LockedMovesLeft--;
+                    if (_LockedMovesLeft == 0)
                     {
-                        _frozenTile = null;
+                        _LockedTile.IsLocked = false;
+                        _LockedTile = null;
                     }
                 }
                 break;
@@ -207,6 +207,12 @@ public class TileBoard : MonoBehaviour
 
     private bool MoveTile(Tile tile, Vector2Int direction)
     {
+        if (tile.IsLocked)
+        {
+            Debug.Log("Tile is locked and cannot be moved.");
+            return false;
+        }
+
         TileCell newCell = null;
         TileCell adjacentCell = _grid.GetAdjacentCell(tile.Cell, direction);
 
@@ -404,26 +410,17 @@ public class TileBoard : MonoBehaviour
         }
     }
 
-    private bool RemoveTileAtMousePosition()
+    private bool RemoveTileAtMousePosition() 
     {
-
         Vector3 mousePosition = Input.mousePosition;
         Debug.Log($"Mouse Position (Screen): {mousePosition}");
 
         // Convert mouse position to world coordinates with a fixed Z value
         worldPosition = Camera.main.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, 10.0f)); // Adjust Z as needed
         Debug.Log($"Converted World Position: {worldPosition}");
-        worldPosition.z = 0; // Ensure Z position is 0 for 2D
+        worldPosition.z = 0;
 
-        // Use OverlapPoint to detect the tile
         Collider2D hitCollider = Physics2D.OverlapPoint(worldPosition, tileLayerMask);
-
-
-        // Log all tiles and their colliders for verification
-        foreach (Tile tile in _tiles)
-        {
-            Debug.Log($"Tile: {tile.name} at position: {tile.transform.position}, Collider Bounds: {tile.GetComponent<Collider2D>().bounds}");
-        }
 
         if (hitCollider != null)
         {
@@ -447,40 +444,35 @@ public class TileBoard : MonoBehaviour
         return false;
     }
 
+
     private void RemoveTile(Tile tile)
     {
+        GameManager.Instance.IncreaseScore(tile.State.number); // TODO:Refactor
         _tiles.Remove(tile);
         tile.Cell.Tile = null;
         Destroy(tile.gameObject);
         Debug.Log("Tile removed: " + tile.name);
     }
 
-    // Gizmo drawing method to visualize worldPosition in Scene view
-    void OnDrawGizmos()
+  
+    private bool HandleBoosterUsage()
     {
-        // Draw a small red sphere at the last calculated world position
-        Gizmos.color = Color.red;
-        Gizmos.DrawSphere(worldPosition, 0.1f); // Adjust size as needed
-    }
-    private void HandleBoosterUsage()
-    {
-        if (_inputController.IsBoosterActive && Input.GetMouseButtonDown(0))
-        {
-            Debug.Log("Handle Booster Mode.");
-            Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            RaycastHit2D hit = Physics2D.Raycast(mousePosition, Vector2.zero);
+        Debug.Log("Handle Booster Mode.");
+        Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        RaycastHit2D hit = Physics2D.Raycast(mousePosition, Vector2.zero);
 
-            if (hit.collider != null)
+        if (hit.collider != null)
+        {
+            Tile selectedTile = hit.collider.GetComponent<Tile>();
+            if (selectedTile != null)
             {
-                Tile selectedTile = hit.collider.GetComponent<Tile>();
-                if (selectedTile != null)
-                {
-                    UseBoosterOnTile(selectedTile);
-                    _inputController.DeactivateBooster();
-                }
+                UseBoosterOnTile(selectedTile);
+                return true;
             }
         }
+        return false;
     }
+
     public void UseBoosterOnTile(Tile selectedTile)
     {
         if (selectedTile != null)
@@ -489,7 +481,7 @@ public class TileBoard : MonoBehaviour
         }
     }
 
-    private bool FreezeTileAtMousePosition()
+    private bool LockTileAtMousePosition()
     {
         Vector3 mousePosition = Input.mousePosition;
         Vector3 worldPosition = Camera.main.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, 10.0f));
@@ -502,17 +494,20 @@ public class TileBoard : MonoBehaviour
             Tile tile = hitCollider.GetComponent<Tile>();
             if (tile != null)
             {
-                FreezeTile(tile);
+                LockTile(tile);
                 return true;
             }
         }
         return false;
     }
 
-    private void FreezeTile(Tile tile)
+    private void LockTile(Tile tile) // TODO: Refactor
     {
-        _frozenTile = tile;
-        _freezeMovesLeft = 15; // Example: freeze for 3 moves
+        tile.IsLocked = true;
+        // Optionally, change the tile's appearance to indicate it is locked
+
+        _LockedTile = tile;
+        _LockedMovesLeft = 15;
     }
 
     private void UndoLastMove()

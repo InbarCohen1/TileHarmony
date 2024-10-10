@@ -141,17 +141,17 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void Update()  //TODO:To Remove?
-    {
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            ToolManager.Instance.ActivateTool(ToolManager.ToolType.RemoveTile);
-        }
-        else if (Input.GetKeyDown(KeyCode.F))
-        {
-            ToolManager.Instance.ActivateTool(ToolManager.ToolType.Freeze);
-        }
-    }
+    //private void Update()  //TODO:To Remove?
+    //{
+    //    if (Input.GetKeyDown(KeyCode.R))
+    //    {
+    //        ToolManager.Instance.ActivateTool(ToolManager.ToolType.RemoveTile);
+    //    }
+    //    else if (Input.GetKeyDown(KeyCode.F))
+    //    {
+    //        ToolManager.Instance.ActivateTool(ToolManager.ToolType.Freeze);
+    //    }
+    //}
 
 }
 

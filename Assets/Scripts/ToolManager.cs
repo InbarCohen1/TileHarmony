@@ -10,7 +10,8 @@ public class ToolManager : Singleton<ToolManager>
         Shuffle,
         Undo,
         RemoveTile,
-        Freeze
+        Booster,
+        LockTile
     }
 
     private ToolType _activeTool = ToolType.None;
@@ -23,8 +24,8 @@ public class ToolManager : Singleton<ToolManager>
     }
     public void DeactivateTool()
     {
+        Debug.Log($"{_activeTool} tool Mode is off");
         _activeTool = ToolType.None;
-        Debug.Log($"Tool Mode is off");
     }
 
     public bool IsToolActive(ToolType tool)
