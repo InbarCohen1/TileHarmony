@@ -15,3 +15,4 @@ MonoBehaviour:
   Title: Undo
   Description: Undo your last move
   BaseCost: 40
+  Icon: {fileID: -2131897291, guid: b3af82da5a6f8a6488d5670c839ed0f9, type: 3}

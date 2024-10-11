@@ -10,8 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 14f6e95fbbfb4fc41824972084d148b2, type: 3}
-  m_Name: ShuffleTool 4
+  m_Name: ShuffleTool
   m_EditorClassIdentifier: 
   Title: Shuffle Board
   Description: Shuffle tiles in Board
   BaseCost: 30
+  Icon: {fileID: 1890423724507344328, guid: 32a33e8ae77d53c42a313f3feaa19800, type: 3}

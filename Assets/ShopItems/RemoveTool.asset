@@ -15,3 +15,4 @@ MonoBehaviour:
   Title: Remove A Tile
   Description: Remove selected tile from board
   BaseCost: 100
+  Icon: {fileID: 1515291275, guid: b3af82da5a6f8a6488d5670c839ed0f9, type: 3}

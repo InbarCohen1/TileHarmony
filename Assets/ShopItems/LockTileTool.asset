@@ -15,3 +15,4 @@ MonoBehaviour:
   Title: Lock Position
   Description: Lock selected tile's position
   BaseCost: 300
+  Icon: {fileID: 24386996, guid: b3af82da5a6f8a6488d5670c839ed0f9, type: 3}

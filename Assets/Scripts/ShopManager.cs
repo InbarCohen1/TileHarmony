@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using UnityEditor.U2D;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -63,6 +64,7 @@ public class ShopManager : MonoBehaviour
             _shopPanels[i].TitleTxt.text = _shopItems[i].Title;
             _shopPanels[i].DescriptionTxt.text = _shopItems[i].Description;
             _shopPanels[i].CostTxt.text = "Coins: " + _shopItems[i].BaseCost.ToString();
+            _shopPanels[i].Icon = _shopItems[i].Icon;
         }
     }
 }
