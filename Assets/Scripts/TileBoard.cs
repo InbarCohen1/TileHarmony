@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -289,9 +290,9 @@ public class TileBoard : MonoBehaviour
         }
     }
 
-    private void UnlockAllTiles()
+    private void UnlockAllTiles() // TODO: Refactor - list instead of one 
     {
-        foreach (var tile in _tiles)
+        foreach (var tile in _tiles.Where(t => t != _LockedTile))
         {
             tile.IsLocked = false;
         }
