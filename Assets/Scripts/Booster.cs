@@ -6,7 +6,6 @@ using UnityEngine.UI;
 
 public class Booster : MonoBehaviour
 {
-    //[SerializeField] private TileBoard _tileBoard;
     private TileBoard _tileBoard;
 
     public void Initialize(TileBoard tileBoard)

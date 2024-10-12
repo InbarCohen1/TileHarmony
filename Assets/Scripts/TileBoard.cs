@@ -38,13 +38,12 @@ public class TileBoard : MonoBehaviour
         tile.Spawn(_grid.GetRandomEmptyCell());
         tile.gameObject.layer = LayerMask.NameToLayer("Tiles");
 
-        // Ensure the tile has a collider component
         BoxCollider2D tileCollider = tile.GetComponent<BoxCollider2D>();
-        if (tileCollider == null)
-        {
-            Debug.Log("Adding BoxCollider2D to tile");
-            tileCollider = tile.gameObject.AddComponent<BoxCollider2D>(); // Add a BoxCollider2D if none exists
-        }
+        //if (tileCollider == null)
+        //{
+        //    Debug.Log("Adding BoxCollider2D to tile");
+        //    tileCollider = tile.gameObject.AddComponent<BoxCollider2D>(); // Add a BoxCollider2D if none exists
+        //}
 
         // Adjust the collider size (scale it up slightly by 1.05x)
         tileCollider.size = new Vector2(tileCollider.size.x * 1.05f, tileCollider.size.y * 1.05f);
@@ -86,43 +85,59 @@ public class TileBoard : MonoBehaviour
         if (ToolManager.Instance.IsAnyToolActive())
         {
             Debug.Log($"Inside HandleToolUsage ");
+
             if (ToolManager.Instance.IsToolActive(ToolManager.ToolType.RemoveTile) && Input.GetMouseButtonDown(0))
             {
-                bool tileRemoved = RemoveTileAtMousePosition();
-                if (tileRemoved)
+                if (ToolManager.Instance.CanUseTool(ToolManager.ToolType.RemoveTile))
                 {
-                    ToolManager.Instance.DeactivateTool();
+                    //ToolManager.Instance.ActivateTool(ToolManager.ToolType.RemoveTile);
+                    bool tileRemoved = RemoveTileAtMousePosition();
+                    if (tileRemoved)
+                    {
+                        ToolManager.Instance.DeactivateTool();
+                    }
                 }
                 return;
             }
 
             if (ToolManager.Instance.IsToolActive(ToolManager.ToolType.LockTile) && Input.GetMouseButtonDown(0))
             {
-                bool tileFrozen = LockTileAtMousePosition();
-                if (tileFrozen)
+                if (ToolManager.Instance.CanUseTool(ToolManager.ToolType.LockTile))
                 {
-                    ToolManager.Instance.DeactivateTool();
+                   // ToolManager.Instance.ActivateTool(ToolManager.ToolType.LockTile);
+                    bool tileFrozen = LockTileAtMousePosition();
+                    if (tileFrozen)
+                    {
+                        ToolManager.Instance.DeactivateTool();
+                    }
                 }
                 return;
             }
 
             if (ToolManager.Instance.IsToolActive(ToolManager.ToolType.Shuffle) && Input.GetMouseButtonDown(0))
             {
-                ShuffleTiles();
-                ToolManager.Instance.DeactivateTool();
-                return;
-            }
-
-            if (ToolManager.Instance.IsToolActive(ToolManager.ToolType.Booster) && Input.GetMouseButtonDown(0))
-            {
-                bool tileBoostern = HandleBoosterUsage();
-                if (tileBoostern)
+                if (ToolManager.Instance.CanUseTool(ToolManager.ToolType.Shuffle))
                 {
+                   // ToolManager.Instance.ActivateTool(ToolManager.ToolType.Shuffle);
+                    ShuffleTiles();
                     ToolManager.Instance.DeactivateTool();
                 }
                 return;
             }
 
+            if (ToolManager.Instance.IsToolActive(ToolManager.ToolType.Booster) && Input.GetMouseButtonDown(0))
+            {
+                if (ToolManager.Instance.CanUseTool(ToolManager.ToolType.Booster))
+                {
+                   // ToolManager.Instance.ActivateTool(ToolManager.ToolType.Booster);
+                    bool tileBoostern = HandleBoosterUsage();
+                    if (tileBoostern)
+                    {
+                        ToolManager.Instance.DeactivateTool();
+                    }
+                }
+                return;
+            }
         }
     }
 
@@ -201,6 +216,7 @@ public class TileBoard : MonoBehaviour
         if (ischangedBoard)
         {
             StartCoroutine(WaitForChanges());
+            GameManager.Instance.OnMoveMade();
         }
 
         return ischangedBoard;
@@ -411,7 +427,7 @@ public class TileBoard : MonoBehaviour
         }
     }
 
-    private bool RemoveTileAtMousePosition() 
+    private bool RemoveTileAtMousePosition()
     {
         Vector3 mousePosition = Input.mousePosition;
         Debug.Log($"Mouse Position (Screen): {mousePosition}");
@@ -455,7 +471,7 @@ public class TileBoard : MonoBehaviour
         Debug.Log("Tile removed: " + tile.name);
     }
 
-  
+
     private bool HandleBoosterUsage()
     {
         Debug.Log("Handle Booster Mode.");

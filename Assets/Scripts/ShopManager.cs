@@ -25,6 +25,13 @@ public class ShopManager : MonoBehaviour
         LoadPanels();
         CheckPurchaseable();
     }
+
+    public void SetCoins(int coins)
+    {
+        _coins = coins;
+        UpdateCoinUIText();
+    }
+
     private void UpdateCoinUIText()
     {
         _coinUI.text = "Coins: " + _coins.ToString();
