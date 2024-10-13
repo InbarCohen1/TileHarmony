@@ -15,4 +15,4 @@ MonoBehaviour:
   Title: Shuffle Board
   Description: Shuffle tiles in Board
   BaseCost: 30
-  Icon: {fileID: 1890423724507344328, guid: 32a33e8ae77d53c42a313f3feaa19800, type: 3}
+  Icon: {fileID: 0}

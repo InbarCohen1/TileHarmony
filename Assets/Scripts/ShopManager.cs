@@ -5,19 +5,21 @@ using UnityEditor.U2D;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class ShopManager : MonoBehaviour
+public class ShopManager : Singleton<ShopManager>
 {
-    private int _coins;
+    private int _coins = 300;
     [SerializeField] private TMP_Text _coinUI;
     [SerializeField] private ShopItem[] _shopItems;
     [SerializeField] private GameObject[] _shopPanelsGO;
     [SerializeField] private ShopTemplate[] _shopPanels;
     [SerializeField] private Button[] _myPurchaseBtns;
+    [SerializeField] private Button[] _toolsBtns;
 
     void Start()
     {
         for (int i = 0; i < _shopItems.Length; i++)
         {
+            _shopItems[i].Quantity = 0;
             _shopPanelsGO[i].SetActive(true);
         }
 
@@ -50,13 +52,23 @@ public class ShopManager : MonoBehaviour
         if (_coins >= _shopItems[btnNo].BaseCost)
         {
             _coins -= _shopItems[btnNo].BaseCost;
+            //test
+            //_shopItems[btnNo].Quantity++;
+            Debug.Log($"in PurchaseItem() Quantity of {btnNo}: {_shopItems[btnNo].Quantity}");
+            _shopPanels[btnNo].QuantityTxt.text = _shopItems[btnNo].Quantity.ToString();
+            _toolsBtns[btnNo].interactable = true;
+            //--------
             UpdateCoinUIText();
             CheckPurchaseable();
 
-            //UnlockItem();
+            UnlockItem(btnNo);
         }
     }
 
+    private void UnlockItem(int btnNo)
+    {
+        _toolsBtns[0].interactable = true;
+    }
     public void AddCoins(int amount)
     {
         _coins += amount;
@@ -71,7 +83,15 @@ public class ShopManager : MonoBehaviour
             _shopPanels[i].TitleTxt.text = _shopItems[i].Title;
             _shopPanels[i].DescriptionTxt.text = _shopItems[i].Description;
             _shopPanels[i].CostTxt.text = "Coins: " + _shopItems[i].BaseCost.ToString();
+            Debug.Log($"Quantity of {i}: {_shopItems[i].Quantity}");
+            _shopPanels[i].QuantityTxt.text = _shopItems[i].Quantity.ToString();
             _shopPanels[i].Icon = _shopItems[i].Icon;
         }
+        //test
+        for (int i = 0; i < _toolsBtns.Length; i++)
+        {
+            _toolsBtns[i].interactable = false;
+        }
     }
+
 }

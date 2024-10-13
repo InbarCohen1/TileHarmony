@@ -1,9 +1,5 @@
 using System.Collections;
-using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
-using UnityEngine.SocialPlatforms.Impl;
-using UnityEngine.UI;
 
 [DefaultExecutionOrder(-1)]
 public class GameManager : Singleton<GameManager>
@@ -11,18 +7,17 @@ public class GameManager : Singleton<GameManager>
     private const string HiScore = "HiScore";
     private const string CoinsKey = "Coins";
 
+    [Header("GameLoop")]
+    private int _currentScore;
+    private int _hiScore;
+    private int _coins;
+    public int CurrentScore => _currentScore; // TODO: Remove?
     public bool IsGameStarted { get; private set; } = false;
     private GameState _savedGameState;
-    public int Score { get; private set; } = 0;
-    [SerializeField] private CanvasGroup _gameOver;
-    [SerializeField] private CanvasGroup _mainMenu;
 
     [Header("TileBoard")]
     [SerializeField] private TileBoard _gameBoard;
-
-    [Header("Scores")]
-    [SerializeField] private TextMeshProUGUI _scoreText;
-    [SerializeField] private TextMeshProUGUI _hiScoreText;
+    private int _newTilesOnNewGame = 2;
 
     [Header("Shop Manager")]
     [SerializeField] private ShopManager _shopManager; 
@@ -30,70 +25,56 @@ public class GameManager : Singleton<GameManager>
 
     private void Start()
     {
-        IsGameStarted = true; //TODO: Move?
-        _mainMenu.interactable = true;
-        StartCoroutine(Fade(_mainMenu, 1f, 1f));
-        
+        IsGameStarted = true;
+        CanvasManager.Instance.ShowMainMenu();
+
         int savedCoins = LoadCoins();
         _shopManager.SetCoins(savedCoins);
     }
 
     public void NewGame()
     {
-        SetScore(0);
-        _hiScoreText.text = LoadHiScore().ToString();
+        _currentScore = 0;
+        _hiScore = LoadHiScore();
+        CanvasManager.Instance.UpdateHiScore(_hiScore);
 
-        // hide game over screen
-        _gameOver.alpha = 0f;
-        _gameOver.interactable = false;
-
+        //CanvasManager.Instance.ShowGameBoard();
         _gameBoard.ClearBoard();
-        _gameBoard.CreateTile();
-        _gameBoard.CreateTile();
-        _gameBoard.enabled = true;
+        for (var i = 0; i < _newTilesOnNewGame; i++)
+        {
+            _gameBoard.CreateTile();
+        }
+        _gameBoard.enabled = true; //TODO: Remove?
 
         ToolManager.Instance.ResetCooldowns();
     }
 
-    private IEnumerator Fade(CanvasGroup canvasGroup, float to, float delay = 0f)
-    {
-        yield return new WaitForSeconds(delay);
-
-        float elapsed = 0f;
-        float duration = 0.5f;
-        float from = canvasGroup.alpha;
-
-        while (elapsed < duration)
-        {
-            canvasGroup.alpha = Mathf.Lerp(from, to, elapsed / duration);
-            elapsed += Time.deltaTime;
-            yield return null;
-        }
-
-        canvasGroup.alpha = to;
-    }
-
     public void IncreaseScore(int points)
     {
-        SetScore(Score + points);
+        SetScore(_currentScore + points);
     }
 
     public void SetScore(int newScore)
     {
-        Score = newScore;
-        _scoreText.text = newScore.ToString();
+        _currentScore = newScore;
 
-        SaveHiscore();
+        if (_currentScore > _hiScore)
+        {
+            _hiScore = _currentScore;
+            PlayerPrefs.SetInt(HiScore, _hiScore);
+            PlayerPrefs.Save();
+
+            CanvasManager.Instance.UpdateHiScore(_hiScore);
+        }
+
+        CanvasManager.Instance.UpdateCurrentScore(_currentScore);
     }
 
     private void SaveHiscore()
     {
-        int bestScore = LoadHiScore();
-
-        if (Score > bestScore)
-        {
-            PlayerPrefs.SetInt(HiScore, Score);
-        }
+        _hiScore = _currentScore;
+        PlayerPrefs.SetInt(HiScore, _hiScore);
+        PlayerPrefs.Save();
     }
 
     private int LoadHiScore()
@@ -116,12 +97,10 @@ public class GameManager : Singleton<GameManager>
 
     public void GameOver()
     {
-        _gameBoard.enabled = false;
-        _gameOver.interactable = true;
-
+        // _gameBoard.enabled = false; //TODO: Remove?
+        CanvasManager.Instance.ShowGameOverScreen();
+    
         RewardPlayer();
-
-        StartCoroutine(Fade(_gameOver, 1f, 1f));
         ToolManager.Instance.ResetCooldowns();
     }
 
@@ -129,20 +108,20 @@ public class GameManager : Singleton<GameManager>
     {
         int coins = 0;
 
-        if (Score >= 10000)
+        if (_currentScore >= 10000)
         {
             coins = 150;
         }
-        else if (Score >= 5000)
+        else if (_currentScore >= 5000)
         {
             coins = 75;
         }
-        else if (Score >= 1000)
+        else if (_currentScore >= 1000)
         {
             coins = 25;
         }
 
-        if (Score > LoadHiScore())
+        if (_currentScore > _hiScore)
         {
             coins += 100; // Breaking record
         }
@@ -158,16 +137,6 @@ public class GameManager : Singleton<GameManager>
         PlayerPrefs.Save();
     }
 
-    public void QuitGame()
-    {
-        IsGameStarted = false;
-        Application.Quit();
-
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#endif
-    }
-
     public void SaveGameState(GameState gameState)
     {
         _savedGameState = gameState;
@@ -179,6 +148,16 @@ public class GameManager : Singleton<GameManager>
         {
             _gameBoard.RestoreGameState(_savedGameState);
         }
+    }
+
+    public void QuitGame()
+    {
+        IsGameStarted = false;
+        Application.Quit();
+
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
     }
 }
 

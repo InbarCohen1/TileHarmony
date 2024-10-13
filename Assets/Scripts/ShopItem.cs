@@ -10,4 +10,6 @@ public class ShopItem : ScriptableObject
     public string Description;
     public int BaseCost;
     public Image Icon;
+    [HideInInspector] public int Quantity = 0;
+    [HideInInspector] public GameObject ItemRef;
 }

@@ -9,10 +9,10 @@ public class GameState
     public List<int> TileValues { get; }
     public int Score { get; }
 
-    public GameState(List<Vector2Int> positions, List<int> values, int currentScore)
+    public GameState(List<Vector2Int> positions, List<int> values)
     {
         TilePositions = new List<Vector2Int>(positions);
         TileValues = new List<int>(values);
-        Score = currentScore;
+        Score = GameManager.Instance.CurrentScore;
     }
 }

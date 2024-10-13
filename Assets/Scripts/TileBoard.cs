@@ -39,13 +39,7 @@ public class TileBoard : MonoBehaviour
         tile.gameObject.layer = LayerMask.NameToLayer("Tiles");
 
         BoxCollider2D tileCollider = tile.GetComponent<BoxCollider2D>();
-        //if (tileCollider == null)
-        //{
-        //    Debug.Log("Adding BoxCollider2D to tile");
-        //    tileCollider = tile.gameObject.AddComponent<BoxCollider2D>(); // Add a BoxCollider2D if none exists
-        //}
-
-        // Adjust the collider size (scale it up slightly by 1.05x)
+       
         tileCollider.size = new Vector2(tileCollider.size.x * 1.05f, tileCollider.size.y * 1.05f);
         Debug.Log($"Collider size after scaling: {tileCollider.size}");
 
@@ -193,7 +187,7 @@ public class TileBoard : MonoBehaviour
             }
         }
 
-        GameManager.Instance.SaveGameState(new GameState(positions, values, GameManager.Instance.Score));
+        GameManager.Instance.SaveGameState(new GameState(positions, values));
     }
 
     private bool Move(Vector2Int direction, int startX, int incrementX, int startY, int incrementY)
