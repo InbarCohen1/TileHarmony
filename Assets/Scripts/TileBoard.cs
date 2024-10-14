@@ -5,7 +5,7 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class TileBoard : MonoBehaviour
+public class TileBoard : Singleton<TileBoard>
 {
     [SerializeField] private LayerMask tileLayerMask; // Ensure this is set to the layer of your tiles
     [SerializeField] private Tile _tilePrefab;
@@ -42,11 +42,6 @@ public class TileBoard : MonoBehaviour
        
         tileCollider.size = new Vector2(tileCollider.size.x * 1.05f, tileCollider.size.y * 1.05f);
         Debug.Log($"Collider size after scaling: {tileCollider.size}");
-
-        // Check if the tile is within the camera's viewport ////// TODO: Remove this code
-        Vector3 viewportPosition = Camera.main.WorldToViewportPoint(tile.transform.position);
-        bool isInView = viewportPosition.x >= 0 && viewportPosition.x <= 1 && viewportPosition.y >= 0 && viewportPosition.y <= 1;
-        Debug.Log($"Created tile at position: {tile.transform.position}, Viewport position: {viewportPosition}, In view: {isInView}");
 
         _tiles.Add(tile);
     }
@@ -168,6 +163,7 @@ public class TileBoard : MonoBehaviour
             }
         }
     }
+
     private void SaveCurrentGameState() // TODO: refactore
     {
         List<Vector2Int> positions = new List<Vector2Int>();
@@ -525,5 +521,4 @@ public class TileBoard : MonoBehaviour
     {
         GameManager.Instance.RestoreGameState();
     }
-
 }
