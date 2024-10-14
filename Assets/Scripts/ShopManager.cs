@@ -26,6 +26,7 @@ public class ShopManager : Singleton<ShopManager>
         UpdateCoinUIText();
         LoadPanels();
         CheckPurchaseable();
+        LoadToolQuantities();
     }
 
     public void SetCoins(int coins)
@@ -53,11 +54,10 @@ public class ShopManager : Singleton<ShopManager>
         {
             _coins -= _shopItems[btnNo].BaseCost;
             //test
-            //_shopItems[btnNo].Quantity++;
-            Debug.Log($"in PurchaseItem() Quantity of {btnNo}: {_shopItems[btnNo].Quantity}");
+            _shopItems[btnNo].Quantity++;
             _shopPanels[btnNo].QuantityTxt.text = _shopItems[btnNo].Quantity.ToString();
             _toolsBtns[btnNo].interactable = true;
-            //--------
+
             UpdateCoinUIText();
             CheckPurchaseable();
 
@@ -91,6 +91,31 @@ public class ShopManager : Singleton<ShopManager>
         for (int i = 0; i < _toolsBtns.Length; i++)
         {
             _toolsBtns[i].interactable = false;
+        }
+    }
+    public void SaveToolQuantities()
+    {
+        ToolData data = new ToolData();
+        data.Quantities = new int[_shopItems.Length];
+        for (int i = 0; i < _shopItems.Length; i++)
+        {
+            data.Quantities[i] = _shopItems[i].Quantity;
+        }
+
+        string json = JsonUtility.ToJson(data);
+        System.IO.File.WriteAllText(Application.persistentDataPath + "/toolData.json", json);
+    }
+    public void LoadToolQuantities()
+    {
+        string path = Application.persistentDataPath + "/toolData.json";
+        if (System.IO.File.Exists(path))
+        {
+            string json = System.IO.File.ReadAllText(path);
+            ToolData data = JsonUtility.FromJson<ToolData>(json);
+            for (int i = 0; i < _shopItems.Length; i++)
+            {
+                _shopItems[i].Quantity = data.Quantities[i];
+            }
         }
     }
 
