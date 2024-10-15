@@ -10,10 +10,10 @@ public class GameManager : Singleton<GameManager>
     [Header("GameLoop")]
     private int _currentScore;
     private int _hiScore;
-    private int _coins; // TODO: Remove
     public int CurrentScore => _currentScore; // TODO: Remove?
     public bool IsGameStarted { get; private set; } = false; // TODO: Remove
     private GameState _savedGameState;
+    public GameState SavedGameState => _savedGameState; //TODO: find alternative
 
     [Header("Board")]
     private int _newTilesOnNewGame = 2;
@@ -24,9 +24,9 @@ public class GameManager : Singleton<GameManager>
         IsGameStarted = true;
         CanvasManager.Instance.ShowMainMenu();
 
-        int savedCoins = LoadCoins(); //TODO: method in Shop manager for this 3 lines
-        //ShopManager.Instance.SetCoins(savedCoins);
-        ShopManager.Instance.LoadToolQuantities();
+        int savedCoins = 2000/*LoadCoins()*/; //TODO: method in Shop manager for this 3 lines
+        ShopManager.Instance.SetCoins(savedCoins);
+       // ShopManager.Instance.LoadToolQuantities(); //test
     }
 
     public void NewGame()
@@ -139,17 +139,17 @@ public class GameManager : Singleton<GameManager>
         _savedGameState = gameState;
     }
 
-    public void RestoreGameState() //TODO:Refactore
-    {
-        if (_savedGameState != null)
-        {
-            TileBoard.Instance.RestoreGameState(_savedGameState);
-        }
-    }
+    //public void RestoreGameState() //TODO:Refactore
+    //{
+    //    if (_savedGameState != null)
+    //    {
+    //        TileBoard.Instance.RestoreGameState(_savedGameState);
+    //    }
+    //}
   
     private void OnApplicationQuit()
     {
-        ShopManager.Instance.SaveToolQuantities(); // Save tool quantities when the application quits
+      //  ShopManager.Instance.SaveToolQuantities(); //test
     }
     public void QuitGame()
     {

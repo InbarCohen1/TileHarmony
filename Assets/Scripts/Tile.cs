@@ -6,12 +6,12 @@ using UnityEngine.UI;
 
 public class Tile : MonoBehaviour
 {
+    private Image _background;
+    private TextMeshProUGUI _text;
     public TileState State { get; private set; }
     public TileCell Cell { get; private set; }
-    public bool IsLocked { get; set; }  // Insures no multiple mergings
-
-    private Image _background;
-    private TextMeshProUGUI _text; 
+    public bool IsLocked { get; set; }  
+    public int LockedMovesLeft { get; private set; }
 
     [Header("Audio")]
     [SerializeField] private AudioSource _audioSource;
@@ -23,6 +23,7 @@ public class Tile : MonoBehaviour
         _background = GetComponent<Image>();
         _text = GetComponentInChildren<TextMeshProUGUI>();
     }
+
     public void SetState(TileState newState)
     {
         State = newState;

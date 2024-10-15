@@ -3,47 +3,48 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 
 public class TileBoard : Singleton<TileBoard>
 {
-    [SerializeField] private LayerMask tileLayerMask; // Ensure this is set to the layer of your tiles
-    [SerializeField] private Tile _tilePrefab;
+    public Tile TilePrefab;
+    [SerializeField] private LayerMask tileLayerMask;
     [SerializeField] private TileState[] _tileStates;
     [SerializeField] private InputController _inputController;
 
     private TileGrid _grid;
-    private List<Tile> _tiles;
+    public List<Tile> Tiles;
     private bool _isWaiting;   // Waiting for updated states before animaiting
     private Vector3 worldPosition;
-    private Booster _booster;
     private Tile _LockedTile;
     private int _LockedMovesLeft;
 
+    public Tile LockedTile => _LockedTile;  //TODO: check alterantive
+    public int LockedMovesLeft => _LockedMovesLeft; //TODO: check alterantive
+
+    public const string TilesLayerName = "Tiles";
+
+    public TileState[] TileStates => _tileStates;
+    public TileGrid Grid => _grid;
 
     private void Awake()
     {
         _grid = GetComponentInChildren<TileGrid>();
-        _tiles = new List<Tile>(16);
-        _booster = gameObject.AddComponent<Booster>();
-        _booster.Initialize(this);
+        Tiles = new List<Tile>(16);
     }
-
-    public List<Tile> GetAllTiles() => _tiles;
 
     public void CreateTile()
     {
-        Tile tile = Instantiate(_tilePrefab, _grid.transform);
+        Tile tile = Instantiate(TilePrefab, _grid.transform);
         tile.SetState(_tileStates[0]);
         tile.Spawn(_grid.GetRandomEmptyCell());
-        tile.gameObject.layer = LayerMask.NameToLayer("Tiles");
+        tile.gameObject.layer = LayerMask.NameToLayer(TilesLayerName);
 
         BoxCollider2D tileCollider = tile.GetComponent<BoxCollider2D>();
-       
         tileCollider.size = new Vector2(tileCollider.size.x * 1.05f, tileCollider.size.y * 1.05f);
-        Debug.Log($"Collider size after scaling: {tileCollider.size}");
 
-        _tiles.Add(tile);
+        Tiles.Add(tile);
     }
 
     public void ClearBoard()
@@ -53,12 +54,12 @@ public class TileBoard : Singleton<TileBoard>
             cell.Tile = null;
         }
 
-        foreach (var tile in _tiles)
+        foreach (var tile in Tiles)
         {
             Destroy(tile.gameObject);
         }
 
-        _tiles.Clear();
+        Tiles.Clear();
     }
 
     private void Update()
@@ -69,63 +70,30 @@ public class TileBoard : Singleton<TileBoard>
         HandleGameControls();
     }
 
-    private void HandleToolUsage() // TODO: Refactor    
+    private void HandleToolUsage()//TODO:move must logic to toolManager
     {
         if (ToolManager.Instance.IsAnyToolActive())
         {
-            Debug.Log($"Inside HandleToolUsage ");
-
-            if (ToolManager.Instance.IsToolActive(ToolManager.ToolType.RemoveTile) && Input.GetMouseButtonDown(0))
+            ICommand command = ToolManager.Instance.GetCommand(this);
+            if (command != null && ToolManager.Instance.CanUseTool(ToolManager.Instance.ActiveTool))
             {
-                if (ToolManager.Instance.CanUseTool(ToolManager.ToolType.RemoveTile))
+                // Check if the tool is Undo or Shuffle
+                if (command is UndoCommand || command is ShuffleCommand)
                 {
-                    //ToolManager.Instance.ActivateTool(ToolManager.ToolType.RemoveTile);
-                    bool tileRemoved = RemoveTileAtMousePosition();
-                    if (tileRemoved)
+                    bool hasExecuted = command.Execute();
+                    if (hasExecuted)
                     {
                         ToolManager.Instance.DeactivateTool();
                     }
                 }
-                return;
-            }
-
-            if (ToolManager.Instance.IsToolActive(ToolManager.ToolType.LockTile) && Input.GetMouseButtonDown(0))
-            {
-                if (ToolManager.Instance.CanUseTool(ToolManager.ToolType.LockTile))
+                else if (Input.GetMouseButtonDown(0))
                 {
-                   // ToolManager.Instance.ActivateTool(ToolManager.ToolType.LockTile);
-                    bool tileFrozen = LockTileAtMousePosition();
-                    if (tileFrozen)
+                    bool hasExecuted = command.Execute();
+                    if (hasExecuted)
                     {
                         ToolManager.Instance.DeactivateTool();
                     }
                 }
-                return;
-            }
-
-            if (ToolManager.Instance.IsToolActive(ToolManager.ToolType.Shuffle) && Input.GetMouseButtonDown(0))
-            {
-                if (ToolManager.Instance.CanUseTool(ToolManager.ToolType.Shuffle))
-                {
-                   // ToolManager.Instance.ActivateTool(ToolManager.ToolType.Shuffle);
-                    ShuffleTiles();
-                    ToolManager.Instance.DeactivateTool();
-                }
-                return;
-            }
-
-            if (ToolManager.Instance.IsToolActive(ToolManager.ToolType.Booster) && Input.GetMouseButtonDown(0))
-            {
-                if (ToolManager.Instance.CanUseTool(ToolManager.ToolType.Booster))
-                {
-                   // ToolManager.Instance.ActivateTool(ToolManager.ToolType.Booster);
-                    bool tileBoostern = HandleBoosterUsage();
-                    if (tileBoostern)
-                    {
-                        ToolManager.Instance.DeactivateTool();
-                    }
-                }
-                return;
             }
         }
     }
@@ -163,8 +131,7 @@ public class TileBoard : Singleton<TileBoard>
             }
         }
     }
-
-    private void SaveCurrentGameState() // TODO: refactore
+    private void SaveCurrentGameState() // TODO: refactore, move to GameManager
     {
         List<Vector2Int> positions = new List<Vector2Int>();
         List<int> values = new List<int>();
@@ -256,14 +223,14 @@ public class TileBoard : Singleton<TileBoard>
 
     private void MergeTiles(Tile mergeFrom, Tile mergeTo)
     {
-        _tiles.Remove(mergeFrom);
+        Tiles.Remove(mergeFrom);
         mergeFrom.Merge(mergeTo.Cell);
 
         TileState newState = UpdateTileState(mergeTo);
         GameManager.Instance.IncreaseScore(newState.number);
     }
 
-    public TileState UpdateTileState(Tile tile)
+    private TileState UpdateTileState(Tile tile)
     {
         int index = Mathf.Clamp(IndexOf(tile.State) + 1, 0, _tileStates.Length - 1);
         TileState newState = _tileStates[index];
@@ -298,7 +265,7 @@ public class TileBoard : Singleton<TileBoard>
 
     private void UnlockAllTiles() // TODO: Refactor - list instead of one 
     {
-        foreach (var tile in _tiles.Where(t => t != _LockedTile))
+        foreach (var tile in Tiles.Where(t => t != _LockedTile))
         {
             tile.IsLocked = false;
         }
@@ -306,10 +273,10 @@ public class TileBoard : Singleton<TileBoard>
 
     private bool IsGridFull()
     {
-        return _tiles.Count == _grid.Size;
+        return Tiles.Count == _grid.Size;
     }
 
-    public bool IsGameOver()
+    public bool IsGameOver() //TODO:move to gameManager
     {
         if (!IsGridFull())
         {
@@ -320,7 +287,7 @@ public class TileBoard : Singleton<TileBoard>
     }
     private bool IsAnyMergesAvailable()
     {
-        foreach (var tile in _tiles)
+        foreach (var tile in Tiles)
         {
             if (IsMergesAvailable(tile))
             {
@@ -351,23 +318,6 @@ public class TileBoard : Singleton<TileBoard>
         return false;
     }
 
-    public void RestoreGameState(GameState gameState)
-    {
-        ClearBoard();
-
-        for (int i = 0; i < gameState.TilePositions.Count; i++)
-        {
-            Vector2Int position = gameState.TilePositions[i];
-            int value = gameState.TileValues[i];
-            Tile tile = Instantiate(_tilePrefab, _grid.transform);
-            tile.SetState(_tileStates[IndexOf(value)]);
-            tile.Spawn(_grid.GetCell(position));
-            _tiles.Add(tile);
-        }
-
-        GameManager.Instance.SetScore(gameState.Score);
-    }
-
     private int IndexOf(int value)
     {
         for (int i = 0; i < _tileStates.Length; i++)
@@ -378,147 +328,169 @@ public class TileBoard : Singleton<TileBoard>
             }
         }
         return 0;
-    }
-    public Tile GetTileAt(int x, int y)
+    } //TODO: Remove
+    public Tile GetTileAt(int x, int y) //TODO: Remove
     {
         return _grid.GetCell(x, y).Tile;
     }
-    public void ShuffleTiles()
+    public void SetLockedTile(Tile tile, int movesLeft)
     {
-        List<Tile> shuffledTiles = new List<Tile>(_tiles);
-        System.Random rng = new System.Random();
-        int n = shuffledTiles.Count;
-
-        while (n > 1)
-        {
-            n--;
-            int k = rng.Next(n + 1);
-            Tile value = shuffledTiles[k];
-            shuffledTiles[k] = shuffledTiles[n];
-            shuffledTiles[n] = value;
-        }
-
-        // Clear the board without destroying the tiles
-        foreach (var cell in _grid.Cells)
-        {
-            cell.Tile = null;
-        }
-
-
-        // Clear the _tiles list to avoid duplicates
-        _tiles.Clear();
-
-        // Re-add the shuffled tiles to the board
-        foreach (Tile tile in shuffledTiles)
-        {
-            TileCell randomCell = _grid.GetRandomEmptyCell();
-            tile.Spawn(randomCell);
-            _tiles.Add(tile);
-        }
-    }
-
-    private bool RemoveTileAtMousePosition()
-    {
-        Vector3 mousePosition = Input.mousePosition;
-        Debug.Log($"Mouse Position (Screen): {mousePosition}");
-
-        // Convert mouse position to world coordinates with a fixed Z value
-        worldPosition = Camera.main.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, 10.0f)); // Adjust Z as needed
-        Debug.Log($"Converted World Position: {worldPosition}");
-        worldPosition.z = 0;
-
-        Collider2D hitCollider = Physics2D.OverlapPoint(worldPosition, tileLayerMask);
-
-        if (hitCollider != null)
-        {
-            Debug.Log($"Hit Collider: {hitCollider.name}, Bounds: {hitCollider.bounds}");
-            Tile tile = hitCollider.GetComponent<Tile>();
-            if (tile != null)
-            {
-                Debug.Log($"Tile selected for removal: {tile.name}");
-                RemoveTile(tile);
-                return true;
-            }
-            else
-            {
-                Debug.Log("No Tile component found on the hit object.");
-            }
-        }
-        else
-        {
-            Debug.Log("No collider hit.");
-        }
-        return false;
-    }
-
-
-    private void RemoveTile(Tile tile)
-    {
-        GameManager.Instance.IncreaseScore(tile.State.number); // TODO:Refactor
-        _tiles.Remove(tile);
-        tile.Cell.Tile = null;
-        Destroy(tile.gameObject);
-        Debug.Log("Tile removed: " + tile.name);
-    }
-
-
-    private bool HandleBoosterUsage()
-    {
-        Debug.Log("Handle Booster Mode.");
-        Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        RaycastHit2D hit = Physics2D.Raycast(mousePosition, Vector2.zero);
-
-        if (hit.collider != null)
-        {
-            Tile selectedTile = hit.collider.GetComponent<Tile>();
-            if (selectedTile != null)
-            {
-                UseBoosterOnTile(selectedTile);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public void UseBoosterOnTile(Tile selectedTile)
-    {
-        if (selectedTile != null)
-        {
-            TileState newState = UpdateTileState(selectedTile);
-        }
-    }
-
-    private bool LockTileAtMousePosition()
-    {
-        Vector3 mousePosition = Input.mousePosition;
-        Vector3 worldPosition = Camera.main.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, 10.0f));
-        worldPosition.z = 0;
-
-        Collider2D hitCollider = Physics2D.OverlapPoint(worldPosition);
-
-        if (hitCollider != null)
-        {
-            Tile tile = hitCollider.GetComponent<Tile>();
-            if (tile != null)
-            {
-                LockTile(tile);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private void LockTile(Tile tile) // TODO: Refactor
-    {
-        tile.IsLocked = true;
-        // Optionally, change the tile's appearance to indicate it is locked
-
         _LockedTile = tile;
-        _LockedMovesLeft = 15;
+        _LockedMovesLeft = movesLeft;
     }
 
-    private void UndoLastMove()
-    {
-        GameManager.Instance.RestoreGameState();
-    }
 }
+//public void RestoreGameState(GameState gameState)
+//{
+//    ClearBoard();
+
+//    for (int i = 0; i < gameState.TilePositions.Count; i++)
+//    {
+//        Vector2Int position = gameState.TilePositions[i];
+//        int value = gameState.TileValues[i];
+//        Tile tile = Instantiate(TilePrefab, _grid.transform);
+//        tile.SetState(_tileStates[IndexOf(value)]);
+//        tile.Spawn(_grid.GetCell(position));
+//        Tiles.Add(tile);
+//    }
+
+//    GameManager.Instance.SetScore(gameState.Score);
+//}
+//private void UndoLastMove()
+//{
+//    GameManager.Instance.RestoreGameState();
+//}
+// public List<Tile> GetAllTiles() => Tiles;
+//private bool HandleBoosterUsage()
+//{
+//    Debug.Log("Handle Booster Mode.");
+//    Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+//    RaycastHit2D hit = Physics2D.Raycast(mousePosition, Vector2.zero);
+
+//    if (hit.collider != null)
+//    {
+//        Tile selectedTile = hit.collider.GetComponent<Tile>();
+//        if (selectedTile != null)
+//        {
+//            UseBoosterOnTile(selectedTile);
+//            return true;
+//        }
+//    }
+//    return false;
+//}
+
+//public void UseBoosterOnTile(Tile selectedTile)
+//{
+//    if (selectedTile != null)
+//    {
+//        TileState newState = UpdateTileState(selectedTile);
+//    }
+//}
+
+//private bool RemoveTileAtMousePosition()
+//{
+//    Vector3 mousePosition = Input.mousePosition;
+//    //Debug.Log($"Mouse Position (Screen): {mousePosition}");
+
+//    // Convert mouse position to world coordinates with a fixed Z value
+//    worldPosition = Camera.main.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, 10.0f)); // Adjust Z as needed
+//                                                                                                          //Debug.Log($"Converted World Position: {worldPosition}");
+//    worldPosition.z = 0;
+
+//    Collider2D hitCollider = Physics2D.OverlapPoint(worldPosition, tileLayerMask);
+
+//    if (hitCollider != null)
+//    {
+//        Debug.Log($"Hit Collider: {hitCollider.name}, Bounds: {hitCollider.bounds}");
+//        Tile tile = hitCollider.GetComponent<Tile>();
+//        if (tile != null)
+//        {
+//            Debug.Log($"Tile selected for removal: {tile.name}");
+//            //ICommand command = ToolManager.Instance.GetCommand(tile);
+
+//            RemoveTile(tile);
+//            return true;
+//        }
+//        else
+//        {
+//            Debug.Log("No Tile component found on the hit object.");
+//        }
+//    }
+//    else
+//    {
+//        Debug.Log("No collider hit.");
+//    }
+//    return false;
+//}
+
+//private void RemoveTile(Tile tile)
+//{
+//    GameManager.Instance.IncreaseScore(tile.State.number); // TODO:Refactor
+//    Tiles.Remove(tile);
+//    tile.Cell.Tile = null;
+//    Destroy(tile.gameObject);
+//    Debug.Log("Tile removed: " + tile.name);
+//}
+
+//public void ShuffleTiles()
+//{
+//    List<Tile> shuffledTiles = new List<Tile>(Tiles);
+//    System.Random rng = new System.Random();
+//    int n = shuffledTiles.Count;
+
+//    while (n > 1)
+//    {
+//        n--;
+//        int k = rng.Next(n + 1);
+//        Tile value = shuffledTiles[k];
+//        shuffledTiles[k] = shuffledTiles[n];
+//        shuffledTiles[n] = value;
+//    }
+
+//    // Clear the board without destroying the tiles
+//    foreach (var cell in _grid.Cells)
+//    {
+//        cell.Tile = null;
+//    }
+
+//    // Clear the _tiles list to avoid duplicates
+//    Tiles.Clear();
+
+//    // Re-add the shuffled tiles to the board
+//    foreach (Tile tile in shuffledTiles)
+//    {
+//        TileCell randomCell = _grid.GetRandomEmptyCell();
+//        tile.Spawn(randomCell);
+//        Tiles.Add(tile);
+//    }
+//}
+
+
+//private bool LockTileAtMousePosition()
+//{
+//    Vector3 mousePosition = Input.mousePosition;
+//    Vector3 worldPosition = Camera.main.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, 10.0f));
+//    worldPosition.z = 0;
+
+//    Collider2D hitCollider = Physics2D.OverlapPoint(worldPosition);
+
+//    if (hitCollider != null)
+//    {
+//        Tile tile = hitCollider.GetComponent<Tile>();
+//        if (tile != null)
+//        {
+//            LockTile(tile);
+//            return true;
+//        }
+//    }
+//    return false;
+//}
+
+//private void LockTile(Tile tile) // TODO: Refactor
+//{
+//    tile.IsLocked = true;
+//    // Optionally, change the tile's appearance to indicate it is locked
+
+//    _LockedTile = tile;
+//    _LockedMovesLeft = 15;
+//}

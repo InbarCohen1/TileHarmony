@@ -20,24 +20,32 @@ public class ToolManager : Singleton<ToolManager>
         { ToolType.Shuffle, 5 },
         { ToolType.Undo, 3 },
         { ToolType.RemoveTile, 20 },
-        { ToolType.LockTile, int.MaxValue }, // Once a game
-        { ToolType.Booster, int.MaxValue } // Once a game
+        { ToolType.LockTile, int.MaxValue }, 
+        { ToolType.Booster, int.MaxValue }
     };
 
     private Dictionary<ToolType, int> _cooldowns = new Dictionary<ToolType, int>();
 
-
     private ToolType _activeTool = ToolType.None;
     public ToolType ActiveTool => _activeTool;
+
+    private void Start()
+    {
+        foreach (ToolType toolType in System.Enum.GetValues(typeof(ToolType)))
+        {
+            if (toolType != ToolType.None)
+            {
+                _cooldowns[toolType] = 0;
+            }
+        }
+    }
 
     public void ActivateTool(ToolType toolType)
     {
         if (CanUseTool(toolType))
         {
             _activeTool = toolType;
-        Debug.Log($"Active Tool is: + {toolType}");
-            // Set the cooldown
-            _cooldowns[toolType] = _cooldownDurations[toolType];
+            Debug.Log($"Active Tool is: + {toolType}");
         }
     }
 
@@ -56,10 +64,12 @@ public class ToolManager : Singleton<ToolManager>
     public void DeactivateTool()
     {
         Debug.Log($"{_activeTool} tool Mode is off");
+
+        _cooldowns[_activeTool] = _cooldownDurations[_activeTool];
         _activeTool = ToolType.None;
     }
 
-    public bool IsToolActive(ToolType tool)
+    public bool IsToolActive(ToolType tool) //TODO:Remove
     {
         return _activeTool == tool;
     }
@@ -80,7 +90,7 @@ public class ToolManager : Singleton<ToolManager>
         {
             if (cooldown > 0)
             {
-                return false; // Another tool is in cooldown
+                return false; 
             }
         }
 
@@ -88,6 +98,66 @@ public class ToolManager : Singleton<ToolManager>
     }
     public void ResetCooldowns()
     {
-        _cooldowns.Clear();
+        List<ToolType> keys = new List<ToolType>(_cooldowns.Keys);
+        foreach (var key in keys)
+        {
+            _cooldowns[key] = 0;
+        }
     }
+
+    public ICommand GetCommand(TileBoard tileBoard)
+    {
+        switch (_activeTool)
+        {
+            case ToolType.Undo:
+                return new UndoCommand(tileBoard);
+            case ToolType.Shuffle:
+                return new ShuffleCommand(tileBoard);
+            case ToolType.RemoveTile:
+                return new RemoveTileCommand(tileBoard);
+            case ToolType.LockTile:
+                return new LockTileCommand(tileBoard);
+            case ToolType.Booster:
+                return new BoosterCommand(tileBoard);
+            default:
+                return null;
+        }
+    }
+
 }
+
+public abstract class TileToolCommand : ICommand
+{
+    public bool Execute()
+    {
+        //Tile tile = InputController.Instance.GetComponentAtMousePosition<Tile>(TileBoard.TilesLayerName);
+        Vector3 mousePosition = Input.mousePosition;
+        Vector3 worldPosition = Camera.main.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, 10.0f)); 
+        worldPosition.z = 0;
+
+        //Collider2D hitCollider = Physics2D.OverlapPoint(worldPosition);
+        Collider2D hitCollider = Physics2D.OverlapPoint(worldPosition, LayerMask.GetMask(TileBoard.TilesLayerName));
+
+        if (hitCollider != null)
+        {
+            Tile tile = hitCollider.GetComponent<Tile>();
+            if (tile != null)
+            {
+                ExecuteLogic(tile);
+                return true;
+            }
+            else
+            {
+                Debug.Log("No Tile component found on the hit object.");
+            }
+        }
+        else
+        {
+            Debug.Log("No collider hit.");
+        }
+        return false;
+    }
+
+    protected abstract void ExecuteLogic(Tile tile);
+}
+

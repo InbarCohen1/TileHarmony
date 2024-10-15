@@ -7,7 +7,7 @@ public class GameState
 {
     public List<Vector2Int> TilePositions { get; }
     public List<int> TileValues { get; }
-    public int Score { get; }
+    public int Score { get; } //TODO: Remove?
 
     public GameState(List<Vector2Int> positions, List<int> values)
     {
