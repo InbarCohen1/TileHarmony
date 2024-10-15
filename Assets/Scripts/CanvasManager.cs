@@ -12,7 +12,7 @@ public class CanvasManager : Singleton<CanvasManager>
     [Header("UI Screens")]
     [SerializeField] private CanvasGroup _mainMenu;
     [SerializeField] private GameObject _mainMenuGO;
-    [SerializeField] private GameObject _gameBoard;
+    [SerializeField] private GameObject _gameBoardGO;
     [SerializeField] private CanvasGroup _menuShop;
     [SerializeField] private GameObject _gameOver;
 
@@ -21,12 +21,7 @@ public class CanvasManager : Singleton<CanvasManager>
     [SerializeField] private TextMeshProUGUI _hiScoreText;
     [SerializeField] private TextMeshProUGUI _coinsInGameOverText;
 
-    private void Awake()
-    {
-        //ShowMainMenu();
-       // _mainMenuGO.SetActive(true);
-    }
-
+ 
     public void UpdateHiScore(int hiScore)
     {
         _hiScoreText.text = hiScore.ToString();
@@ -44,7 +39,9 @@ public class CanvasManager : Singleton<CanvasManager>
 
     public void ShowGameOverScreen(int reward)
     {
+        _gameBoardGO.GetComponent<CanvasGroup>().enabled = false;
         _gameOver.SetActive(true);
+        _gameOver.GetComponent<CanvasGroup>().interactable = true;
         _coinsInGameOverText.text = $"Congratulations! You've earned {reward} coins!";
         FadeCanvas(_gameOver.GetComponent<CanvasGroup>(), 1f, 1f);
     }

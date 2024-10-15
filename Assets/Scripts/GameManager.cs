@@ -95,11 +95,9 @@ public class GameManager : Singleton<GameManager>
 
     public void GameOver()
     {
-        // _gameBoard.enabled = false; //TODO: Remove?
         int reward = RewardPlayer();
         CanvasManager.Instance.ShowGameOverScreen(reward);
     
-        
         ToolManager.Instance.ResetCooldowns();
     }
 

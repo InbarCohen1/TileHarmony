@@ -131,7 +131,7 @@ public class TileBoard : Singleton<TileBoard>
             }
         }
     }
-    private void SaveCurrentGameState() // TODO: refactore, move to GameManager
+    private void SaveCurrentGameState()
     {
         List<Vector2Int> positions = new List<Vector2Int>();
         List<int> values = new List<int>();
@@ -263,7 +263,7 @@ public class TileBoard : Singleton<TileBoard>
         }
     }
 
-    private void UnlockAllTiles() // TODO: Refactor - list instead of one 
+    private void UnlockAllTiles()  
     {
         foreach (var tile in Tiles.Where(t => t != _LockedTile))
         {
@@ -276,7 +276,7 @@ public class TileBoard : Singleton<TileBoard>
         return Tiles.Count == _grid.Size;
     }
 
-    public bool IsGameOver() //TODO:move to gameManager
+    public bool IsGameOver() 
     {
         if (!IsGridFull())
         {
@@ -318,21 +318,6 @@ public class TileBoard : Singleton<TileBoard>
         return false;
     }
 
-    private int IndexOf(int value)
-    {
-        for (int i = 0; i < _tileStates.Length; i++)
-        {
-            if (_tileStates[i].number == value)
-            {
-                return i;
-            }
-        }
-        return 0;
-    } //TODO: Remove
-    public Tile GetTileAt(int x, int y) //TODO: Remove
-    {
-        return _grid.GetCell(x, y).Tile;
-    }
     public void SetLockedTile(Tile tile, int movesLeft)
     {
         _LockedTile = tile;
