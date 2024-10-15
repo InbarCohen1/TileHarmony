@@ -100,36 +100,66 @@ public class TileBoard : Singleton<TileBoard>
 
     private void HandleGameControls()
     {
-        var keyDirectionMap = new Dictionary<KeyCode, (Vector2Int direction, int startX, int incrementX, int startY, int incrementY)>
+        if (InputController.Instance.MovingUp)
         {
-            { KeyCode.W, (Vector2Int.up, 0, 1, 1, 1) },
-            { KeyCode.UpArrow, (Vector2Int.up, 0, 1, 1, 1) },
-            { KeyCode.A, (Vector2Int.left, 1, 1, 0, 1) },
-            { KeyCode.LeftArrow, (Vector2Int.left, 1, 1, 0, 1) },
-            { KeyCode.S, (Vector2Int.down, 0, 1, _grid.Height - 2, -1) },
-            { KeyCode.DownArrow, (Vector2Int.down, 0, 1, _grid.Height - 2, -1) },
-            { KeyCode.D, (Vector2Int.right, _grid.Width - 2, -1, 0, 1) },
-            { KeyCode.RightArrow, (Vector2Int.right, _grid.Width - 2, -1, 0, 1) }
-        };
+            SaveCurrentGameState();
+            Move(Vector2Int.up, 0, 1, 1, 1);
+        }
+        else if (InputController.Instance.MovingDown)
+        {
+            SaveCurrentGameState();
+            Move(Vector2Int.down, 0, 1, _grid.Height - 2, -1);
+        }
+        else if (InputController.Instance.MovingLeft)
+        {
+            SaveCurrentGameState();
+            Move(Vector2Int.left, 1, 1, 0, 1);
+        }
+        else if (InputController.Instance.MovingRight)
+        {
+            SaveCurrentGameState();
+            Move(Vector2Int.right, _grid.Width - 2, -1, 0, 1);
+        }
 
-        foreach (var keyDirection in keyDirectionMap)
+        if (_LockedTile != null && _LockedMovesLeft > 0)
         {
-            if (Input.GetKeyDown(keyDirection.Key))
+            _LockedMovesLeft--;
+            if (_LockedMovesLeft == 0)
             {
-                SaveCurrentGameState();
-                Move(keyDirection.Value.direction, keyDirection.Value.startX, keyDirection.Value.incrementX, keyDirection.Value.startY, keyDirection.Value.incrementY);
-                if (_LockedTile != null && _LockedMovesLeft > 0)
-                {
-                    _LockedMovesLeft--;
-                    if (_LockedMovesLeft == 0)
-                    {
-                        _LockedTile.IsLocked = false;
-                        _LockedTile = null;
-                    }
-                }
-                break;
+                _LockedTile.IsLocked = false;
+                _LockedTile = null;
             }
         }
+        //var keyDirectionMap = new Dictionary<KeyCode, (Vector2Int direction, int startX, int incrementX, int startY, int incrementY)>
+        //{
+        //    { KeyCode.W, (Vector2Int.up, 0, 1, 1, 1) },
+        //    { KeyCode.UpArrow, (Vector2Int.up, 0, 1, 1, 1) },
+        //    { KeyCode.A, (Vector2Int.left, 1, 1, 0, 1) },
+        //    { KeyCode.LeftArrow, (Vector2Int.left, 1, 1, 0, 1) },
+        //    { KeyCode.S, (Vector2Int.down, 0, 1, _grid.Height - 2, -1) },
+        //    { KeyCode.DownArrow, (Vector2Int.down, 0, 1, _grid.Height - 2, -1) },
+        //    { KeyCode.D, (Vector2Int.right, _grid.Width - 2, -1, 0, 1) },
+        //    { KeyCode.RightArrow, (Vector2Int.right, _grid.Width - 2, -1, 0, 1) }
+        //};
+
+        //foreach (var keyDirection in keyDirectionMap)
+        //{
+        //    if (Input.GetKeyDown(keyDirection.Key))
+        //    {
+        //        SaveCurrentGameState();
+        //        Move(keyDirection.Value.direction, keyDirection.Value.startX, keyDirection.Value.incrementX, keyDirection.Value.startY, keyDirection.Value.incrementY);
+        //        if (_LockedTile != null && _LockedMovesLeft > 0)
+        //        {
+        //            _LockedMovesLeft--;
+        //            if (_LockedMovesLeft == 0)
+        //            {
+        //                _LockedTile.IsLocked = false;
+        //                _LockedTile = null;
+        //            }
+        //        }
+        //        break;
+        //    }
+        //}
     }
     private void SaveCurrentGameState()
     {
