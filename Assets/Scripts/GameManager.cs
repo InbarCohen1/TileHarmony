@@ -24,9 +24,9 @@ public class GameManager : Singleton<GameManager>
         IsGameStarted = true;
         CanvasManager.Instance.ShowMainMenu();
 
-        int savedCoins = 2000/*LoadCoins()*/; //TODO: method in Shop manager for this 3 lines
+        int savedCoins = LoadCoins();
         ShopManager.Instance.SetCoins(savedCoins);
-       // ShopManager.Instance.LoadToolQuantities(); //test
+        ShopManager.Instance.LoadToolQuantities();
     }
 
     public void NewGame()
@@ -35,14 +35,11 @@ public class GameManager : Singleton<GameManager>
         _hiScore = LoadHiScore();
         CanvasManager.Instance.UpdateHiScore(_hiScore);
 
-        //CanvasManager.Instance.ShowGameBoard();
-
         TileBoard.Instance.ClearBoard();
         for (var i = 0; i < _newTilesOnNewGame; i++)
         {
             TileBoard.Instance.CreateTile();
         }
-       // _gameBoard.enabled = true; 
 
         ToolManager.Instance.ResetCooldowns();
     }

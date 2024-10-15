@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using static ToolManager;
 
 public class CanvasManager : Singleton<CanvasManager>
 {
-    [SerializeField] private List<Image> _ToolsIconImages;
+    [SerializeField] private Button[] _toolsBtns;
 
     [Header("UI Screens")]
     [SerializeField] private CanvasGroup _mainMenu;
@@ -21,7 +22,6 @@ public class CanvasManager : Singleton<CanvasManager>
     [SerializeField] private TextMeshProUGUI _hiScoreText;
     [SerializeField] private TextMeshProUGUI _coinsInGameOverText;
 
- 
     public void UpdateHiScore(int hiScore)
     {
         _hiScoreText.text = hiScore.ToString();
@@ -64,5 +64,32 @@ public class CanvasManager : Singleton<CanvasManager>
         }
 
         canvasGroup.alpha = to;
+    }
+
+    public void UpdateAllToolButtonsInteractability()
+    {
+        int toolTypeCount = System.Enum.GetValues(typeof(ToolType)).Length - 1; // Exclude ToolType.None
+        for (int i = 0; i < _toolsBtns.Length && i < toolTypeCount; i++)
+        {
+            UpdateToolButtonInteractability((ToolType)i);
+        }
+    }
+
+    public void UpdateToolButtonInteractability(ToolType toolType)
+    {
+        if (toolType == ToolType.None) return;
+
+        int toolIndex = (int)toolType - 1;
+
+        if (toolIndex >= 0 && toolIndex < _toolsBtns.Length)
+        {
+            bool hasQuantity = ShopManager.Instance.ShopItems[toolIndex].Quantity > 0;
+            bool isNotOnCooldown = ToolManager.Instance.CanUseTool(toolType);
+            _toolsBtns[toolIndex].interactable = hasQuantity && isNotOnCooldown;
+        }
+        else
+        {
+            Debug.LogWarning($"Tool index {toolIndex} is out of bounds for _toolsBtns array.");
+        }
     }
 }

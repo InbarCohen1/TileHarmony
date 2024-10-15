@@ -42,7 +42,7 @@ public class ToolManager : Singleton<ToolManager>
 
     public void ActivateTool(ToolType toolType)
     {
-        if (CanUseTool(toolType))
+        if (toolType != ToolType.None && CanUseTool(toolType))
         {
             _activeTool = toolType;
             Debug.Log($"Active Tool is: + {toolType}");
@@ -57,18 +57,21 @@ public class ToolManager : Singleton<ToolManager>
             if (_cooldowns[key] > 0)
             {
                 _cooldowns[key]--;
+                CanvasManager.Instance.UpdateToolButtonInteractability(key);
             }
         }
     }
 
     public void DeactivateTool()
     {
-        Debug.Log($"{_activeTool} tool Mode is off");
-
-        _cooldowns[_activeTool] = _cooldownDurations[_activeTool];
-        _activeTool = ToolType.None;
+        if (_activeTool != ToolType.None)
+        {
+            Debug.Log($"{_activeTool} tool Mode is off");
+            _cooldowns[_activeTool] = _cooldownDurations[_activeTool];
+            CanvasManager.Instance.UpdateToolButtonInteractability(_activeTool);
+            _activeTool = ToolType.None;
+        }
     }
-
 
     public bool IsAnyToolActive()
     {
@@ -77,27 +80,18 @@ public class ToolManager : Singleton<ToolManager>
 
     public bool CanUseTool(ToolType toolType)
     {
-        if (_cooldowns.ContainsKey(toolType) && _cooldowns[toolType] > 0)
-        {
-            return false;
-        }
-
-        foreach (var cooldown in _cooldowns.Values)
-        {
-            if (cooldown > 0)
-            {
-                return false; 
-            }
-        }
-
-        return true;
+        return _cooldowns.ContainsKey(toolType) && _cooldowns[toolType] <= 0;
     }
     public void ResetCooldowns()
     {
         List<ToolType> keys = new List<ToolType>(_cooldowns.Keys);
         foreach (var key in keys)
         {
-            _cooldowns[key] = 0;
+            if (key != ToolType.None) // Skip 'None'
+            {
+                _cooldowns[key] = 0;
+                CanvasManager.Instance.UpdateToolButtonInteractability(key);
+            }
         }
     }
 

@@ -14,7 +14,8 @@ public class ShopManager : Singleton<ShopManager>
     [SerializeField] private ShopTemplate[] _shopPanels;
     [SerializeField] private Button[] _myPurchaseBtns;
     [SerializeField] private Button[] _toolsBtns;
-  
+
+    public ShopItem[] ShopItems => _shopItems;
 
     void Start()
     {
@@ -23,11 +24,10 @@ public class ShopManager : Singleton<ShopManager>
             _shopItems[i].Quantity = 0;
             _shopPanelsGO[i].SetActive(true);
         }
-        _shopItems[1].Quantity = 1; // For Testing
         UpdateCoinUIText();
 
         
-       // LoadToolQuantities(); 
+        LoadToolQuantities(); 
         LoadPanels();
         CheckPurchaseable();
     }
