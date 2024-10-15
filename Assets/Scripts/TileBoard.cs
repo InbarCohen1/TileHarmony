@@ -130,7 +130,6 @@ public class TileBoard : Singleton<TileBoard>
                 _LockedTile = null;
             }
         }
-       
     }
     private void SaveCurrentGameState()
     {

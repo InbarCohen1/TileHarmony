@@ -22,10 +22,10 @@ public class InputController : Singleton<InputController>
 
     private void Update()
     {
-        MovingLeft = Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A);
-        MovingRight = Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D);
-        MovingUp = Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W);
-        MovingDown = Input.GetKey(KeyCode.DownArrow) || Input.GetKey(KeyCode.S);
+        MovingLeft = Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A);
+        MovingRight = Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D);
+        MovingUp = Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W);
+        MovingDown = Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S);
     }
     public bool MovingLeft { get; set; }
     public bool MovingRight { get; set; }
