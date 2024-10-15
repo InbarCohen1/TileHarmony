@@ -10,17 +10,19 @@ public class InputController : Singleton<InputController>
     //[SerializeField] private CanvasButton _moveDownButton;
     //[SerializeField] private CanvasButton _moveUpButton;
 
+    [SerializeField] private Button _shuffleButton;
+    [SerializeField] private Button _undoButton;
     [SerializeField] private Button _removeButton;
     [SerializeField] private Button _boosterButton;
     [SerializeField] private Button _lockButton;
-    private bool _isBoosterActive = false;
-    public bool IsBoosterActive => _isBoosterActive;
 
     private void Start()
     {
-        _removeButton.onClick.AddListener(OnRemoveButtonClick);
-        _boosterButton.onClick.AddListener(OnBoosterButtonClick);
-        _lockButton.onClick.AddListener(OnLockButtonClick);
+        _shuffleButton.onClick.AddListener(() => ToolManager.Instance.ActivateTool(ToolManager.ToolType.Shuffle));
+        _undoButton.onClick.AddListener(() => ToolManager.Instance.ActivateTool(ToolManager.ToolType.Undo));
+        _removeButton.onClick.AddListener(() => ToolManager.Instance.ActivateTool(ToolManager.ToolType.RemoveTile));
+        _boosterButton.onClick.AddListener(() => ToolManager.Instance.ActivateTool(ToolManager.ToolType.Booster));
+        _lockButton.onClick.AddListener(() => ToolManager.Instance.ActivateTool(ToolManager.ToolType.LockTile));
     }
 
     private void Update()
@@ -32,24 +34,32 @@ public class InputController : Singleton<InputController>
         //MovingDown = Input.GetKey(KeyCode.UpArrow) || (_moveDownButton != null ? _moveDownButton.Pressed : false);
     }
     public bool MovingLeft { get; set; }
-
     public bool MovingRight { get; set; }
     public bool MovingDown { get; set; }
     public bool MovingUp { get; set; }
 
-    private void OnRemoveButtonClick()
+    public T GetComponentAtMousePosition<T>(string layerMaskName) where T : class
     {
-        ToolManager.Instance.ActivateTool(ToolManager.ToolType.RemoveTile);
-    }
+        int layer = LayerMask.NameToLayer(layerMaskName);
+        if (layer == -1)
+        {
+            Debug.LogError($"Layer '{layerMaskName}' does not exist.");
+            return null;
+        }
+        LayerMask layerMask = 1 << layer;
 
-    public void OnBoosterButtonClick()
-    {
-        ToolManager.Instance.ActivateTool(ToolManager.ToolType.Booster);
-    }
+        Vector3 mousePosition = Input.mousePosition;
+        Vector3 worldPosition = Camera.main.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, 10.0f));
+        worldPosition.z = 0;
 
-    public void OnLockButtonClick()
-    {
-        ToolManager.Instance.ActivateTool(ToolManager.ToolType.LockTile);
+        Collider2D hitCollider = Physics2D.OverlapPoint(worldPosition, layerMask);
+
+        if (hitCollider != null)
+        {
+            return hitCollider.GetComponent<T>();
+        }
+
+        return null;
     }
 
 }
