@@ -14,10 +14,8 @@ public class ShopManager : Singleton<ShopManager>
     [SerializeField] private ShopTemplate[] _shopPanels;
     [SerializeField] private Button[] _myPurchaseBtns;
     [SerializeField] private Button[] _toolsBtns;
-    private void Awake()
-    {
-        _shopItems[2].Quantity = 1;
-    }
+  
+
     void Start()
     {
         for (int i = 0; i < _shopItems.Length; i++)
@@ -25,10 +23,10 @@ public class ShopManager : Singleton<ShopManager>
             _shopItems[i].Quantity = 0;
             _shopPanelsGO[i].SetActive(true);
         }
-        _shopItems[1].Quantity = 1;
+        _shopItems[1].Quantity = 1; // For Testing
         UpdateCoinUIText();
 
-        //test
+        
        // LoadToolQuantities(); 
         LoadPanels();
         CheckPurchaseable();
@@ -58,7 +56,6 @@ public class ShopManager : Singleton<ShopManager>
         if (_coins >= _shopItems[btnNo].BaseCost)
         {
             _coins -= _shopItems[btnNo].BaseCost;
-            //test
             _shopItems[btnNo].Quantity++;
             _shopPanels[btnNo].QuantityTxt.text = _shopItems[btnNo].Quantity.ToString();
             UnlockItem( btnNo);
@@ -86,11 +83,9 @@ public class ShopManager : Singleton<ShopManager>
             _shopPanels[i].TitleTxt.text = _shopItems[i].Title;
             _shopPanels[i].DescriptionTxt.text = _shopItems[i].Description;
             _shopPanels[i].CostTxt.text = "Coins: " + _shopItems[i].BaseCost.ToString();
-            Debug.Log($"Quantity of {i}: {_shopItems[i].Quantity}");
             _shopPanels[i].QuantityTxt.text = _shopItems[i].Quantity.ToString();
             _shopPanels[i].Icon = _shopItems[i].Icon;
         }
-        //test
         for (int i = 0; i < _toolsBtns.Length; i++)
         {
             _toolsBtns[i].interactable = false;
@@ -118,8 +113,8 @@ public class ShopManager : Singleton<ShopManager>
             for (int i = 0; i < _shopItems.Length; i++)
             {
                 _shopItems[i].Quantity = data.Quantities[i];
+                _toolsBtns[i].interactable = _shopItems[i].Quantity > 0;
             }
         }
     }
-
 }

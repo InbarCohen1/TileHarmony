@@ -69,10 +69,6 @@ public class ToolManager : Singleton<ToolManager>
         _activeTool = ToolType.None;
     }
 
-    public bool IsToolActive(ToolType tool) //TODO:Remove
-    {
-        return _activeTool == tool;
-    }
 
     public bool IsAnyToolActive()
     {
@@ -123,19 +119,16 @@ public class ToolManager : Singleton<ToolManager>
                 return null;
         }
     }
-
 }
 
 public abstract class TileToolCommand : ICommand
 {
     public bool Execute()
     {
-        //Tile tile = InputController.Instance.GetComponentAtMousePosition<Tile>(TileBoard.TilesLayerName);
         Vector3 mousePosition = Input.mousePosition;
         Vector3 worldPosition = Camera.main.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, 10.0f)); 
         worldPosition.z = 0;
 
-        //Collider2D hitCollider = Physics2D.OverlapPoint(worldPosition);
         Collider2D hitCollider = Physics2D.OverlapPoint(worldPosition, LayerMask.GetMask(TileBoard.TilesLayerName));
 
         if (hitCollider != null)

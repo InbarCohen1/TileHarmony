@@ -80,7 +80,6 @@ public class Tile : MonoBehaviour
         }
     }
 
-
     private IEnumerator Animate(Vector3 destPosition, bool isMerging) 
     {
         float elapsed = 0f;

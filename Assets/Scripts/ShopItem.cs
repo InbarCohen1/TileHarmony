@@ -11,5 +11,4 @@ public class ShopItem : ScriptableObject
     public int BaseCost;
     public Image Icon;
     [HideInInspector] public int Quantity = 0;
-    [HideInInspector] public GameObject ItemRef;
 }

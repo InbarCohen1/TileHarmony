@@ -10,16 +10,16 @@ public class CanvasManager : Singleton<CanvasManager>
     [SerializeField] private List<Image> _ToolsIconImages;
 
     [Header("UI Screens")]
-    //[SerializeField] private GameObject _canvasToolsButtonsContainer;
     [SerializeField] private CanvasGroup _mainMenu;
     [SerializeField] private GameObject _mainMenuGO;
     [SerializeField] private GameObject _gameBoard;
     [SerializeField] private CanvasGroup _menuShop;
-    [SerializeField] private CanvasGroup _gameOver;
+    [SerializeField] private GameObject _gameOver;
 
     [Header("Scores")]
     [SerializeField] private TextMeshProUGUI _currentScoreText;
     [SerializeField] private TextMeshProUGUI _hiScoreText;
+    [SerializeField] private TextMeshProUGUI _coinsInGameOverText;
 
     private void Awake()
     {
@@ -40,48 +40,13 @@ public class CanvasManager : Singleton<CanvasManager>
     public void ShowMainMenu()
     {
         _mainMenuGO.SetActive(true);
-
-    }
-    public void ShowGameBoard()
-    {
-       // SetCanvasGroupVisibility(_mainMenu, false);
-        _gameBoard.SetActive(true);
-        //SetCanvasGroupVisibility(_gameBoard, true);
-        //SetCanvasGroupVisibility(_menuShop, false);
-        //SetCanvasGroupVisibility(_gameOver, false);
     }
 
-    public void ShowMenuShop()
+    public void ShowGameOverScreen(int reward)
     {
-        SetCanvasGroupVisibility(_mainMenu, false);
-        //SetCanvasGroupVisibility(_gameBoard, false);
-        SetCanvasGroupVisibility(_menuShop, true);
-        SetCanvasGroupVisibility(_gameOver, false);
-    }
-
-    public void ShowGameOverScreen()
-    {
-        SetCanvasGroupVisibility(_mainMenu, false);
-        //SetCanvasGroupVisibility(_gameBoard, false);
-        SetCanvasGroupVisibility(_menuShop, false);
-        SetCanvasGroupVisibility(_gameOver, true);
-    }
-    private void SetCanvasGroupVisibility(CanvasGroup canvasGroup, bool isVisible)
-    {
-        if (isVisible)
-        {
-            canvasGroup.alpha = 1f;
-            canvasGroup.interactable = true;
-            canvasGroup.blocksRaycasts = true;
-            canvasGroup.gameObject.SetActive(true); // Ensure the GameObject is active
-        }
-        else
-        {
-            canvasGroup.alpha = 0f;
-            canvasGroup.interactable = false;
-            canvasGroup.blocksRaycasts = false;
-            canvasGroup.gameObject.SetActive(false); // Disable the GameObject when not in use
-        }
+        _gameOver.SetActive(true);
+        _coinsInGameOverText.text = $"Congratulations! You've earned {reward} coins!";
+        FadeCanvas(_gameOver.GetComponent<CanvasGroup>(), 1f, 1f);
     }
 
     public void FadeCanvas(CanvasGroup canvasGroup, float to, float duration = 0.5f)

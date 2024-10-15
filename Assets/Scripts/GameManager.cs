@@ -10,10 +10,10 @@ public class GameManager : Singleton<GameManager>
     [Header("GameLoop")]
     private int _currentScore;
     private int _hiScore;
-    public int CurrentScore => _currentScore; // TODO: Remove?
-    public bool IsGameStarted { get; private set; } = false; // TODO: Remove
+    public int CurrentScore => _currentScore;
+    public bool IsGameStarted { get; private set; } = false; 
     private GameState _savedGameState;
-    public GameState SavedGameState => _savedGameState; //TODO: find alternative
+    public GameState SavedGameState => _savedGameState; 
 
     [Header("Board")]
     private int _newTilesOnNewGame = 2;
@@ -36,12 +36,13 @@ public class GameManager : Singleton<GameManager>
         CanvasManager.Instance.UpdateHiScore(_hiScore);
 
         //CanvasManager.Instance.ShowGameBoard();
+
         TileBoard.Instance.ClearBoard();
         for (var i = 0; i < _newTilesOnNewGame; i++)
         {
             TileBoard.Instance.CreateTile();
         }
-       // _gameBoard.enabled = true; //TODO: Remove?
+       // _gameBoard.enabled = true; 
 
         ToolManager.Instance.ResetCooldowns();
     }
@@ -95,36 +96,38 @@ public class GameManager : Singleton<GameManager>
     public void GameOver()
     {
         // _gameBoard.enabled = false; //TODO: Remove?
-        CanvasManager.Instance.ShowGameOverScreen();
+        int reward = RewardPlayer();
+        CanvasManager.Instance.ShowGameOverScreen(reward);
     
-        RewardPlayer();
+        
         ToolManager.Instance.ResetCooldowns();
     }
 
-    private void RewardPlayer()
+    private int RewardPlayer()
     {
-        int coins = 0;
+        int reward = 0;
 
         if (_currentScore >= 10000)
         {
-            coins = 150;
+            reward = 150;
         }
         else if (_currentScore >= 5000)
         {
-            coins = 75;
+            reward = 75;
         }
         else if (_currentScore >= 1000)
         {
-            coins = 25;
+            reward = 25;
         }
 
         if (_currentScore > _hiScore)
         {
-            coins += 100; // Breaking record
+            reward += 100; // Breaking record
         }
 
-        ShopManager.Instance.AddCoins(coins);
-        SaveCoins(coins);
+        ShopManager.Instance.AddCoins(reward);
+        SaveCoins(reward);
+        return reward;
     }
 
     private void SaveCoins(int coins)
@@ -138,18 +141,10 @@ public class GameManager : Singleton<GameManager>
     {
         _savedGameState = gameState;
     }
-
-    //public void RestoreGameState() //TODO:Refactore
-    //{
-    //    if (_savedGameState != null)
-    //    {
-    //        TileBoard.Instance.RestoreGameState(_savedGameState);
-    //    }
-    //}
   
     private void OnApplicationQuit()
     {
-      //  ShopManager.Instance.SaveToolQuantities(); //test
+        ShopManager.Instance.SaveToolQuantities(); 
     }
     public void QuitGame()
     {
